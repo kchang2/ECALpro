@@ -34,10 +34,12 @@ if ( str(sys.argv[1]).find('ONLYFIT') != -1 ):
      ONLYFIT = True;
 
 Add_path = ''
+ListPaths = []
 if ( RunCRAB ):
     nIterations = 1
     njobs = 0
-    Add_path = sys.argv[4]
+    ListPaths = sys.argv[4].replace('~',' ').split(' ')
+    Add_path = ListPaths[0] #When you save the outputs you save them into the 1st path done by CRAB
     queue = sys.argv[3]
 elif ( RunResub ):
     njobs = int(sys.argv[4])
@@ -120,10 +122,13 @@ for iters in range(nIterations):
         print 'Done with the Fill part'
     #Crab start from HADD, but it need to rebuild the list of files. So he has this additional part
     if ( sys.argv[1] == 'CRAB' ):
-        print 'Getting Good file: ' + "cmsLs " + eosPath + "/" + dirname + "/iter_" + str(iters) + "/" + Add_path + " | awk '{print $5}' | grep root"
-        getGoodfile = subprocess.Popen(["cmsLs " + eosPath + "/" + dirname + "/iter_" + str(iters) + "/" + Add_path +  " | awk '{print $5}' | grep root" ], stdout=subprocess.PIPE, shell=True)
-        getGoodfile_c = getGoodfile.communicate()
-        getGoodfile_str = str(getGoodfile_c)
+        getGoodfile_str = ''
+        for Extra_path in ListPaths:
+            print 'LETS TRY: ' + Extra_path
+            print 'Getting Good file: ' + "cmsLs " + eosPath + "/" + dirname + "/iter_" + str(iters) + "/" + Extra_path + " | awk '{print $5}' | grep root"
+            getGoodfile = subprocess.Popen(["cmsLs " + eosPath + "/" + dirname + "/iter_" + str(iters) + "/" + Extra_path +  " | awk '{print $5}' | grep root" ], stdout=subprocess.PIPE, shell=True)
+            getGoodfile_c = getGoodfile.communicate()
+            getGoodfile_str += str(getGoodfile_c)
         getGoodfile_str = getGoodfile_str.replace("\\n", " ")
         getGoodfile_str = getGoodfile_str.replace("'", "")
         getGoodfile_str = getGoodfile_str.replace("(", "")
@@ -132,9 +137,8 @@ for iters in range(nIterations):
         getGoodfile_str = getGoodfile_str.replace(",", "")
         getGoodfile_list = getGoodfile_str.split()
         NrelJob = float(len(getGoodfile_list))
-        if( float(int(NrelJob) - NrelJob) < 0. ):
-            NrelJob = int(NrelJob) + 1
         Nlist_flo = float(NrelJob/nHadd) + 1.
+        if ( NrelJob%nHadd == 0 ): Nlist_flo -= 1
         Nlist = int(Nlist_flo)
         print "Number of Hadds in parallel (CRAB): " + str(Nlist)
         #Remove Old .list and create new ones
@@ -179,12 +183,13 @@ for iters in range(nIterations):
     #HADD for batch and CRAB, if you do not want just the finalHADD or the FIT
     if ( sys.argv[1] != 'CRAB_RESU_FinalHadd' and sys.argv[1] != 'CRAB_RESU_FitOnly' and not ONLYFIT ):
         print 'Now adding files...'
-        inputlist_v = inputlistbase_v[:]
-        NrelJob = float(len(inputlist_v)) / float(ijobmax)
-        if( float(int(NrelJob) - NrelJob) < 0. ):
-            NrelJob = int(NrelJob) + 1
-        Nlist_flo = float(NrelJob/nHadd) + 1.
-        Nlist = int(Nlist_flo)
+        if not( RunCRAB ):
+           inputlist_v = inputlistbase_v[:]
+           NrelJob = float(len(inputlist_v)) / float(ijobmax)
+           if( float(int(NrelJob) - NrelJob) < 0. ):
+               NrelJob = int(NrelJob) + 1
+           Nlist_flo = float(NrelJob/nHadd) + 1.
+           Nlist = int(Nlist_flo)
         print "Number of Hadd in parallel: " + str(Nlist)
         for nHadds in range(Nlist):
             Hadd_src_n = srcPath + "/hadd/HaddCfg_iter_" + str(iters) + "_job_" + str(nHadds) + ".sh"
@@ -297,14 +302,6 @@ for iters in range(nIterations):
             Fdatalines = (FcheckJobs.communicate()[0]).splitlines()
 
         print 'Done with final hadd'
-
-#    # removing useles file
-#    for nRm in range(Nlist):
-#        remove_s = 'cmsRm ' + eosPath + '/' + dirname + '/iter_' + str(iters) + '/' + Add_path + '/' + NameTag + 'epsilonPlots_' + str(nRm) + '.root'
-#        print '[Removed] :: ' + remove_s
-#        removeFile = subprocess.Popen([remove_s],stdout=subprocess.PIPE, shell=True)
-#        nFilesRemoved = 0
-#        filesRemoved = (removeFile.communicate()[0]).splitlines()
 
     # N of Fit to send
     nEB = 61199/nFit

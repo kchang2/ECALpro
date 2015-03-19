@@ -124,6 +124,9 @@ def printFillCfg2( outputfile, pwd , iteration, outputDir, ijob ):
     outputfile.write("process.analyzerFillEpsilon.HLTResults                  = cms.untracked.bool(" + HLTResults + ")\n")
     outputfile.write("process.analyzerFillEpsilon.RemoveDead_Flag             = cms.untracked.bool(" + RemoveDead_Flag + ")\n")
     outputfile.write("process.analyzerFillEpsilon.RemoveDead_Map              = cms.untracked.string('" + RemoveDead_Map + "')\n")
+    if(MC_Asssoc):
+        outputfile.write("process.analyzerFillEpsilon.GenPartCollectionTag = cms.untracked." + genPartInputTag + "\n")
+        outputfile.write("process.analyzerFillEpsilon.MC_Asssoc            = cms.untracked.bool(True)\n")
     if(Are_pi0):
         outputfile.write("process.analyzerFillEpsilon.Are_pi0                 = cms.untracked.bool(True)\n")
     else:
@@ -315,20 +318,24 @@ def printCrab(outputfile, iter):
     outputfile.write("config.JobType.pluginName = 'Analysis'\n")
     outputfile.write("config.JobType.psetName = 'fillEpsilonPlot_iter_" + str(iter) + ".py'\n")
     outputfile.write("config.Data.inputDataset = '" + CRAB_Data_Path + "'\n")
-    outputfile.write("config.Data.inputDBS = 'global'\n")
     outputfile.write("config.Data.splitting = 'FileBased'\n")
     outputfile.write("config.Data.unitsPerJob = " + str(unitsPerJob) + "\n")
-    outputfile.write("config.Data.outLFN = '" + eosPath + "/" + dirname + "/" + "iter_" + str(iter) + "/'\n")
+    if not(isOtherT2):
+       outputfile.write("config.Data.inputDBS = 'global'\n")
+       outputfile.write("config.Data.outLFN = '" + eosPath + "/" + dirname + "/" + "iter_" + str(iter) + "/'\n")
+    else:
+       outputfile.write("config.Data.outLFN = '" + outLFN + "'\n")
+       outputfile.write("config.Data.voGroup = '" + voGroup + "'\n")
+    outputfile.write("config.Site.storageSite = '" + storageSite + "'\n")
     outputfile.write("config.JobType.outputFiles = ['EcalNtp_0.root']\n")
     outputfile.write("config.Data.publication = False\n")
-    outputfile.write("config.Site.storageSite = 'T2_CH_CERN'\n")
 
 def printCrabHadd(outputfile, iter, pwd):
     outputfile.write("#!/bin/bash\n")
     outputfile.write("#bsub -q " + queueForDaemon + " 'bash " + pwd + "/" + dirname + "/CRAB_files/HaddSendafterCrab_" + iter + ".sh'\n")
     outputfile.write("cd " + pwd + "\n")
     outputfile.write("eval `scramv1 runtime -sh`\n")
-    outputfile.write("AddPath='putPATHhere'\n")
+    outputfile.write("AddPath='putPATHhere' #Use path1~path2 if you have more folder from CRAB. The ICs will go to the 1st path\n")
     outputfile.write("echo 'python calibJobHandler.py CRAB " + iter + " " + queue + "' $AddPath\n")
     outputfile.write("if [ '$AddPath' == 'putPATHhere' ]; then\n")
     outputfile.write("   echo 'Wrong Use of HaddSendafterCrab_X.sh, add the additional path of the CRAB output'\n")

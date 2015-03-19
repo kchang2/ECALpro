@@ -1,6 +1,7 @@
 #include "TFile.h"
 #include "TH2F.h"
 #include "TH1F.h"
+#include "TLorentzVector.h"
 
 #include "FWCore/Framework/interface/Frameworkfwd.h"
 #include "FWCore/Framework/interface/EDAnalyzer.h"
@@ -147,6 +148,7 @@ class FillEpsilonPlot : public edm::EDAnalyzer {
       edm::InputTag hltL1GtObjectMap_;
       edm::InputTag l1InputTag_;
       std::map<string,int> L1_nameAndNumb;
+      edm::InputTag GenPartCollectionTag_;
       
       PosCalcParams PCparams_;
       //const double preshowerStartEta_ =  1.653;
@@ -184,6 +186,9 @@ class FillEpsilonPlot : public edm::EDAnalyzer {
       double S4S9_cut_high_[3];
       double SystOrNot_;
       bool isMC_;
+      bool MC_Asssoc_;
+      TLorentzVector Gamma1MC;
+      TLorentzVector Gamma2MC;
       bool isCRAB_;
       bool MakeNtuple4optimization_;
 

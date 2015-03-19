@@ -50,6 +50,8 @@ Implementation:
 #include "Geometry/CaloTopology/interface/CaloTopology.h"
 #include "Geometry/CaloTopology/interface/EcalBarrelHardcodedTopology.h"
 #include "Geometry/CaloTopology/interface/EcalEndcapHardcodedTopology.h"
+#include "DataFormats/HepMCCandidate/interface/GenParticle.h"
+#include "DataFormats/HepMCCandidate/interface/GenParticleFwd.h"
 
 #include "FWCore/Framework/interface/ESHandle.h"
 #include "DataFormats/L1GlobalTrigger/interface/L1GlobalTriggerReadoutRecord.h"
@@ -69,6 +71,7 @@ Implementation:
 #include "Geometry/Records/interface/CaloGeometryRecord.h"
 #include "Geometry/CaloGeometry/interface/CaloSubdetectorGeometry.h"
 #include "RecoEcal/EgammaCoreTools/interface/PositionCalc.h"
+#include "Geometry/CaloGeometry/interface/TruncatedPyramid.h"
 //ES
 #include "FWCore/Framework/interface/ESProducer.h"
 #include "Geometry/EcalAlgo/interface/EcalPreshowerGeometry.h"
@@ -123,6 +126,7 @@ FillEpsilonPlot::FillEpsilonPlot(const edm::ParameterSet& iConfig)
     l1TriggerTag_                      = iConfig.getUntrackedParameter<edm::InputTag>("L1TriggerTag");
     triggerTag_                        = iConfig.getUntrackedParameter<edm::InputTag>("triggerTag",edm::InputTag("TriggerResults"));
     hltL1GtObjectMap_                  = iConfig.getUntrackedParameter<edm::InputTag>("hltL1GtObjectMap",edm::InputTag("hltL1GtObjectMap"));
+    GenPartCollectionTag_              = iConfig.getUntrackedParameter<edm::InputTag>("GenPartCollectionTag",edm::InputTag("genParticles"));
     outfilename_                       = iConfig.getUntrackedParameter<std::string>("OutputFile");
     ebContainmentCorrections_          = iConfig.getUntrackedParameter<std::string>("EBContainmentCorrections");
     MVAEBContainmentCorrections_01_    = iConfig.getUntrackedParameter<std::string>("MVAEBContainmentCorrections_01");
@@ -177,6 +181,7 @@ FillEpsilonPlot::FillEpsilonPlot(const edm::ParameterSet& iConfig)
     S4S9_cut_high_[EcalEndcap]         = iConfig.getUntrackedParameter<double>("S4S9_EE_high");
     SystOrNot_                         = iConfig.getUntrackedParameter<double>("SystOrNot",0);
     isMC_                              = iConfig.getUntrackedParameter<bool>("isMC",false);
+    MC_Asssoc_                         = iConfig.getUntrackedParameter<bool>("MC_Asssoc",false);
     MakeNtuple4optimization_           = iConfig.getUntrackedParameter<bool>("MakeNtuple4optimization",false);
     GeometryFromFile_                  = iConfig.getUntrackedParameter<bool>("GeometryFromFile",false);
 
@@ -445,6 +450,27 @@ FillEpsilonPlot::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup
     if(!areLabelsSet_){
 	areLabelsSet_ = true;
 	cout << "setting labels of triggerComposition histogram" << endl;
+    }
+  }
+  //MC Photons (they will be associated to the clusters later)
+  Gamma1MC.SetPtEtaPhiE( -999., -999., -999., -999. ); Gamma2MC.SetPtEtaPhiE( -999., -999., -999., -999. );
+  if( isMC_ && MC_Asssoc_ ){
+    edm::Handle<std::vector<reco::GenParticle>> GenParProd;
+    iEvent.getByLabel( GenPartCollectionTag_, GenParProd);//Fatal Root Error: @SUB=TBufferFile::CheckByteCount object of class edm::RefCore read too many bytes: 10 instead of 8
+    const reco::GenParticleCollection *GenPars = 0;
+    if ( ! GenParProd.isValid() )  edm::LogWarning("GenParSummary") << "GenPars not found";
+    GenPars = GenParProd.product();
+    //Find MC photons
+    bool firstnotfound = true;
+    for (auto& GenPar : *GenPars){
+	if( GenPar.pdgId()==22 && GenPar.mother()->pdgId()==Are_pi0_?111:221 && firstnotfound ){
+	  Gamma1MC.SetPtEtaPhiE( GenPar.pt(), GenPar.p4().Eta(), GenPar.p4().Phi(), GenPar.p4().E() );
+	  firstnotfound = false;
+	  continue;
+	}
+	if( GenPar.pdgId()==22 && GenPar.mother()->pdgId()==Are_pi0_?111:221 && GenPar.p4().Eta() != Gamma1MC.Eta() ){
+	  Gamma2MC.SetPtEtaPhiE( GenPar.pt(), GenPar.p4().Eta(), GenPar.p4().Phi(), GenPar.p4().E() );
+	}
     }
   }
 #ifdef DEBUG
@@ -1694,15 +1720,15 @@ bool FillEpsilonPlot::getTriggerResult(const edm::Event& iEvent, const edm::Even
   const L1GlobalTriggerObjectMapRecord *l1trig = gtReadoutRecord.product();
   for( int i=0; i<NL1SEED; i++ ){
     const L1GlobalTriggerObjectMap* trg = l1trig->getObjectMap(i);
-	if(trg){
-	  L1BitCollection_[trg->algoBitNumber()] = trg->algoGtlResult();
-	  if( trg->algoGtlResult() ){
-	    triggerComposition->Fill( trg->algoBitNumber() );
-	  }
+    if(trg){
+	L1BitCollection_[trg->algoBitNumber()] = trg->algoGtlResult();
+	if( trg->algoGtlResult() ){
+	  triggerComposition->Fill( trg->algoBitNumber() );
 	}
+    }
   }
   if( L1_Bit_Sele_!="" ){
-	if ( L1_nameAndNumb.find(L1_Bit_Sele_.Data()) != L1_nameAndNumb.end() ){
+    if ( L1_nameAndNumb.find(L1_Bit_Sele_.Data()) != L1_nameAndNumb.end() ){
 	const L1GlobalTriggerObjectMap* trg = l1trig->getObjectMap( L1_nameAndNumb[L1_Bit_Sele_.Data()] );
 	return trg->algoGtlResult();
     }
@@ -1713,20 +1739,20 @@ bool FillEpsilonPlot::getTriggerResult(const edm::Event& iEvent, const edm::Even
   }
   else{ return true;}  
 
-//  edm::Handle< L1GlobalTriggerReadoutRecord > gtReadoutRecord;
-//  iEvent.getByLabel( l1TriggerTag_, gtReadoutRecord);
-//  const DecisionWord& gtDecisionWord = gtReadoutRecord->decisionWord();
-//  int thisBit =0;
-//  for (std::vector<bool>::const_iterator itBit = gtDecisionWord.begin(); itBit != gtDecisionWord.end(); ++itBit, ++thisBit) {
-//    L1BitCollection_[thisBit] = gtDecisionWord.at(thisBit);
-//    if( gtDecisionWord.at(thisBit) ) triggerComposition->Fill(thisBit);
-//  }
-//  if( !L1_Bit_Sele_.Contains("") ){
-//    edm::ESHandle<L1GtTriggerMenu> menuRcd;
-//    iSetup.get<L1GtTriggerMenuRcd>().get(menuRcd) ;
-//    return gtDecisionWord.at(l1TrigNames_[L1_Bit_Sele_.Data()]);
-//  }
-//  else{ return true;}
+  //  edm::Handle< L1GlobalTriggerReadoutRecord > gtReadoutRecord;
+  //  iEvent.getByLabel( l1TriggerTag_, gtReadoutRecord);
+  //  const DecisionWord& gtDecisionWord = gtReadoutRecord->decisionWord();
+  //  int thisBit =0;
+  //  for (std::vector<bool>::const_iterator itBit = gtDecisionWord.begin(); itBit != gtDecisionWord.end(); ++itBit, ++thisBit) {
+  //    L1BitCollection_[thisBit] = gtDecisionWord.at(thisBit);
+  //    if( gtDecisionWord.at(thisBit) ) triggerComposition->Fill(thisBit);
+  //  }
+  //  if( !L1_Bit_Sele_.Contains("") ){
+  //    edm::ESHandle<L1GtTriggerMenu> menuRcd;
+  //    iSetup.get<L1GtTriggerMenuRcd>().get(menuRcd) ;
+  //    return gtDecisionWord.at(l1TrigNames_[L1_Bit_Sele_.Data()]);
+  //  }
+  //  else{ return true;}
 }
 
 void FillEpsilonPlot::endJob(){

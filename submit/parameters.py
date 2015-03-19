@@ -1,29 +1,35 @@
 #Do not modify these
 nEventsPerJob    = '-1'
-outputFile       = 'EcalNtp' # without .root suffix
+outputFile       = 'EcalNtp'           # without .root suffix
 calibMapName     = 'calibMap.root'
-GeometryFromFile = False
-ExternalGeometry = 'caloGeometry.root'
-CalibType        = 'xtal'
+GeometryFromFile = False               # Keep that False, you want the cmssw geometry. Anyway the geometry file is needed
+ExternalGeometry = 'caloGeometry.root' 
+CalibType        = 'xtal'              # Calibrating single xtals. I never try but you could calibrate EtaRing ot Trigger Towers
 
 #Are Pi0
-Are_pi0          = True # True = using Pi0, False = using Eta
-#IS CRAB
-isCRAB           = True
-CRAB_Data_Path   = '/Neutrino_Pt-2to20_gun/Fall13dr-tsg_PU40bx25_POSTLS162_V2-v1/AODSIM'
-CRAB_CopyCert    = '/afs/cern.ch/user/l/lpernie/private/x509up_u12147'
-unitsPerJob = 5   #DBS File per Job
-#MC and TTree
-isMC = True
-MakeNtuple4optimization = False
+Are_pi0          = True                # True = using Pi0, False = using Eta
 #PATH
 #eosPath = '/store/caf/user/lpernie'
 eosPath = '/store/group/dpg_ecal/alca_ecalcalib/lpernie'
+#CRAB
+isCRAB           = False               # If not is batch
+CRAB_Data_Path   = '/Neutrino_Pt-2to20_gun/Fall13dr-tsg_PU40bx25_POSTLS162_V2-v1/AODSIM'
+CRAB_CopyCert    = '/afs/cern.ch/user/l/lpernie/private/x509up_u12147'
+storageSite      = "T2_CH_CERN"
+unitsPerJob = 10   #DBS File per Job
+isOtherT2        = True
 if(isCRAB):
    eosPath = '/store/group/dpg_ecal/alca_ecalcalib/lpernie/' #For reason of space is better the group area
-inputlist_n      = 'ALL_NeuPt2_20_PU40x25.list' # list of the input files
-dirname          = 'ALL_CRAB_IIHE_02'
-
+   if(isOtherT2):
+       voGroup     = "becms"
+       storageSite = "T2_BE_IIHE"
+       outLFN      = "/store/user/lpernie/ALL_CRAB_IIHE_02/iter_0/"
+#MC and Selection Optimization
+isMC = True
+MakeNtuple4optimization = True
+#InputList and Folder name
+inputlist_n      = 'Pi0Gun.list' # list of the input files
+dirname          = 'ALL_pi0Gun_02'
 Silent           = False                 # True->Fill modules is silent; False->Fill modules has a standard output
 #TAG, QUEUE and ITERS
 NameTag          = ''                   # Tag to the names to avoid overlap
@@ -39,12 +45,15 @@ Barrel_or_Endcap = 'ALL_PLEASE'         # Option: 'ONLY_BARREL','ONLY_ENDCAP','A
 RemoveDead_Flag = "True"
 RemoveDead_Map  = ""
 #RemoveDead_Map  = "/afs/cern.ch/work/l/lpernie/ECALpro/gitHubCalib/CMSSW_6_2_5/src/CalibCode/submit/AfterCalibTools/DeadXtals/plots/h_DeadXtal.root"
+
 #L1 Bit Collection
 L1TriggerInfo = False;                          # If we want to Fill the L1 Trigger Bit Histo (and if we perform the cut based on a L1Bit of L1Seed != "")
 hltGtDigis = 'InputTag("simGtDigis")'          # To take the info to Fill the L1 Bit histo
 triggerTag = 'InputTag("TriggerResults")'
 hltL1GtObjectMap = 'InputTag("hltL1GtObjectMap")'
 L1Seed = ""                                     # You can ask taht one Bit is FIRED: Ex: "L1_SingleJet16" or more complicated stuff "L1_SingleJet16 OR L1_SingleJet36"
+#Association with GenPart
+MC_Asssoc = False
 
 #Seeds (Comment if you want the standard cuts ones)
 EB_Seed_E    = '0.5'
@@ -212,7 +221,7 @@ GeVTagRecord='';GeVTag='';GeVDB=''
 ######################################################################
 # Now decomment the part that correspond to data you want to run on. #
 ######################################################################
-##2012D
+#2012D
 ###/afs/cern.ch/cms/CAF/CMSCOMM/COMM_DQM/certification/Collisions12/8TeV/Prompt/Cert_190456-208686_8TeV_PromptReco_Collisions12_JSON.txt
 #json_file ='goodrunlist_json2012D.txt'
 #isNewTag=True
@@ -302,7 +311,7 @@ GeVTagRecord='';GeVTag='';GeVDB=''
 #   alphaDB='frontier://FrontierProd/CMS_COND_42X_ECAL_LAS'
 ##############
 ##2012B
-###/afs/cern.ch/cms/CAF/CMSCOMM/COMM_DQM/certification/Collisions12/8TeV/Prompt/Cert_190456-208357_8TeV_PromptReco_Collisions12_JSON.txt
+##/afs/cern.ch/cms/CAF/CMSCOMM/COMM_DQM/certification/Collisions12/8TeV/Prompt/Cert_190456-208357_8TeV_PromptReco_Collisions12_JSON.txt
 #json_file ='goodrunlist_json2012C.txt'
 #isNewTag=True
 #HLTResults = 'True'
@@ -522,6 +531,26 @@ GeVTagRecord='';GeVTag='';GeVDB=''
 #isMC = True
 
 #MC CRAB Neutrino GUN
+#HLTResults = 'False'                                          # Use the function GetHLTResults(iEvent, "AlCa_EcalPi0EBonly.*");
+#json_file = ''
+#is_2011 = 'False'                                             # Fit Parameter Range
+#overWriteGlobalTag = False                                    # Allow to overwrite AlphaTag, Laser correction etc
+#doEnenerScale='False'
+#doIC='False'                                                  # Member of Recalibration Module
+#doLaserCorr="False"
+#ebInputTag = "InputTag('reducedEcalRecHitsEB','')"
+#eeInputTag = "InputTag('reducedEcalRecHitsEE','')"
+#esInputTag = "InputTag('reducedEcalRecHitsES','')"
+#hltGtDigis = "InputTag('simGtDigis','','TEST')"
+#triggerTag = 'InputTag("TriggerResults","","TEST")'
+#hltL1GtObjectMap = 'InputTag("hltL1GtObjectMap","","TEST")'
+#useHLTFilter = "False"                                        # Add to the path the request of a HLT path:  process.AlcaP0Filter.HLTPaths = 
+#correctHits = 'False'
+#globaltag='MCRUN2_72_V1A::All'
+#HLTPaths='AlCa_EcalPi0_*'                                     # Name of the HLT path selected with useHLTFilter
+#isMC = True
+
+#Pi0Gun
 HLTResults = 'False'                                          # Use the function GetHLTResults(iEvent, "AlCa_EcalPi0EBonly.*");
 json_file = ''
 is_2011 = 'False'                                             # Fit Parameter Range
@@ -529,9 +558,9 @@ overWriteGlobalTag = False                                    # Allow to overwri
 doEnenerScale='False'
 doIC='False'                                                  # Member of Recalibration Module
 doLaserCorr="False"
-ebInputTag = "InputTag('reducedEcalRecHitsEB','')"
-eeInputTag = "InputTag('reducedEcalRecHitsEE','')"
-esInputTag = "InputTag('reducedEcalRecHitsES','')"
+ebInputTag = "InputTag('ecalRecHit','EcalRecHitsEB')"
+eeInputTag = "InputTag('ecalRecHit','EcalRecHitsEE')"
+esInputTag = "InputTag('ecalPreshowerRecHit','EcalRecHitsES')"
 hltGtDigis = "InputTag('simGtDigis','','TEST')"
 triggerTag = 'InputTag("TriggerResults","","TEST")'
 hltL1GtObjectMap = 'InputTag("hltL1GtObjectMap","","TEST")'
@@ -540,6 +569,8 @@ correctHits = 'False'
 globaltag='MCRUN2_72_V1A::All'
 HLTPaths='AlCa_EcalPi0_*'                                     # Name of the HLT path selected with useHLTFilter
 isMC = True
+MC_Asssoc = True
+genPartInputTag = "InputTag('genParticles','')"
 
 
 ##2012 Selection
