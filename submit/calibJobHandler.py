@@ -407,12 +407,12 @@ for iters in range(nIterations):
        ListFinaHadd = ListFinaHaddEB
     if Barrel_or_Endcap=='ONLY_ENDCAP':
        ListFinaHadd = ListFinaHaddEE
-    if (Barrel_or_Endcap=='ONLY_BARREL' and Barrel_or_Endcap=='ONLY_ENDCAP'):
+    if (Barrel_or_Endcap=='ALL_PLEASE'):
        ListFinaHadd = ListFinaHaddEB
        ListFinaHadd = ListFinaHadd + ListFinaHaddEE
 
     # Create a struct
-    if Barrel_or_Endcap=='ONLY_BARREL':
+    if(Barrel_or_Endcap=='ONLY_BARREL' or Barrel_or_Endcap=='ALL_PLEASE'):
        gROOT.ProcessLine(\
          "struct EBStruct{\
            Int_t rawId_;\
@@ -440,7 +440,7 @@ for iters in range(nIterations):
            Double_t fit_Bnorm_;\
          };")
        s = EBStruct()
-    if Barrel_or_Endcap=='ONLY_ENDCAP':
+    if(Barrel_or_Endcap=='ONLY_ENDCAP' or Barrel_or_Endcap=='ALL_PLEASE'):
        gROOT.ProcessLine(\
          "struct EEStruct{\
            Int_t ix_;\
@@ -467,7 +467,7 @@ for iters in range(nIterations):
            Double_t fit_Bnorm_;\
          };")
        t = EEStruct()
-    if Barrel_or_Endcap=='ONLY_BARREL':
+    if(Barrel_or_Endcap=='ONLY_BARREL' or Barrel_or_Endcap=='ALL_PLEASE'):
        gROOT.ProcessLine(\
          "struct EB1Struct{\
            Int_t rawId;\
@@ -495,7 +495,7 @@ for iters in range(nIterations):
            Double_t fit_Bnorm;\
          };")
        s1 = EB1Struct()
-    if Barrel_or_Endcap=='ONLY_ENDCAP':
+    if(Barrel_or_Endcap=='ONLY_ENDCAP' or Barrel_or_Endcap=='ALL_PLEASE'):
        gROOT.ProcessLine(\
          "struct EE1Struct{\
            Int_t ix;\
@@ -527,7 +527,7 @@ for iters in range(nIterations):
     calibMap_EEm = TH2F("calibMap_EEm", "EE- calib coefficients", 100,0.5,100.5,100,0.5,100.5)
     calibMap_EEp = TH2F("calibMap_EEp", "EE+ calib coefficients", 100,0.5,100.5,100,0.5,100.5)
     TreeEB = TTree("calibEB", "Tree of EB Inter-calibration constants")
-    if Barrel_or_Endcap=='ONLY_BARREL':
+    if(Barrel_or_Endcap=='ONLY_BARREL' or Barrel_or_Endcap=='ALL_PLEASE'):
        TreeEB.Branch('rawId_'      , AddressOf(s,'rawId_'),'rawId_/I')
        TreeEB.Branch('hashedIndex_', AddressOf(s,'hashedIndex_'),'hashedIndex_/I')
        TreeEB.Branch('ieta_'       , AddressOf(s,'ieta_'),'ieta_/I')
@@ -553,7 +553,7 @@ for iters in range(nIterations):
        TreeEB.Branch('fit_Bnorm_'  , AddressOf(s,'fit_Bnorm_'),'fit_Bnorm_/F')
 
     TreeEE = TTree("calibEE", "Tree of EE Inter-calibration constants")
-    if Barrel_or_Endcap=='ONLY_ENDCAP':
+    if(Barrel_or_Endcap=='ONLY_ENDCAP' or Barrel_or_Endcap=='ALL_PLEASE'):
        TreeEE.Branch('ix_'         , AddressOf(t,'ix_'),'ix_/I')
        TreeEE.Branch('iy_'         , AddressOf(t,'iy_'),'iy_/I')
        TreeEE.Branch('zside_'      , AddressOf(t,'zside_'),'zside_/I')
