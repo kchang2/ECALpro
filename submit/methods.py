@@ -232,7 +232,10 @@ def printFitCfg( outputfile, iteration, outputDir, nIn, nFin, EBorEE, nFit ):
     outputfile.write("process.fitEpsilon = cms.EDAnalyzer('FitEpsilonPlot')\n")
     outputfile.write("process.fitEpsilon.OutputFile = cms.untracked.string('" + NameTag + EBorEE + "_" + str(nFit) + "_" + calibMapName + "')\n")
     outputfile.write("process.fitEpsilon.CalibType = cms.untracked.string('" + CalibType + "')\n")
-    outputfile.write("process.fitEpsilon.OutputDir = cms.untracked.string('" +  outputDir + "')\n")
+    if( isOtherT2 and storageSite=="T2_BE_IIHE" and isCRAB ):
+        outputfile.write("process.fitEpsilon.OutputDir = cms.untracked.string('$TMPDIR')\n")
+    else:
+        outputfile.write("process.fitEpsilon.OutputDir = cms.untracked.string('" +  outputDir + "')\n")
     outputfile.write("process.fitEpsilon.CurrentIteration = cms.untracked.int32(" + str(iteration) + ")\n")
     outputfile.write("process.fitEpsilon.NInFit = cms.untracked.int32(" + str(nIn) + ")\n")
     outputfile.write("process.fitEpsilon.NFinFit = cms.untracked.int32(" + str(nFin) + ")\n")
@@ -244,7 +247,7 @@ def printFitCfg( outputfile, iteration, outputDir, nIn, nFin, EBorEE, nFit ):
         outputfile.write("process.fitEpsilon.Are_pi0 = cms.untracked.bool( False )\n")
     outputfile.write("process.fitEpsilon.StoreForTest = cms.untracked.bool( False )\n")
     outputfile.write("process.fitEpsilon.Barrel_orEndcap = cms.untracked.string('" + Barrel_or_Endcap + "')\n")
-    if not(isCRAB): #If CRAB you have to put the correct path, anbd you do it on calibJobHandler.py, not on ./submitCalibration.py
+    if not(isCRAB): #If CRAB you have to put the correct path, and you do it on calibJobHandler.py, not on ./submitCalibration.py
         outputfile.write("process.fitEpsilon.EpsilonPlotFileName = cms.untracked.string('root://eoscms//eos/cms" + eosPath + "/" + dirname + "/iter_" + str(iteration) + "/" + NameTag + "epsilonPlots.root')\n")
         outputfile.write("process.fitEpsilon.calibMapPath = cms.untracked.string('root://eoscms//eos/cms" + eosPath + "/" + dirname + "/iter_" + str(iteration-1) + "/" + NameTag + calibMapName + "')\n")
     outputfile.write("process.p = cms.Path(process.fitEpsilon)\n")
@@ -252,6 +255,11 @@ def printFitCfg( outputfile, iteration, outputDir, nIn, nFin, EBorEE, nFit ):
 
 def printSubmitFitSrc(outputfile, cfgName, source, destination, pwd, logpath):
     outputfile.write("#!/bin/bash\n")
+    if( isOtherT2 and storageSite=="T2_BE_IIHE" and isCRAB ):
+        outputfile.write("export SCRAM_ARCH=slc6_amd64_gcc491\n")
+        outputfile.write("source $VO_CMS_SW_DIR/cmsset_default.sh\n")
+        outputfile.write("source /cvmfs/cms.cern.ch/crab3/crab.sh\n")
+        outputfile.write("export X509_USER_PROXY=/localgrid/lpernie/x509up_u20580\n")
     outputfile.write("cd " + pwd + "\n")
     outputfile.write("eval `scramv1 runtime -sh`\n")
     outputfile.write("echo 'cmsRun " + cfgName + " 2>&1 | awk {quote}/FIT_EPSILON:/ || /WITHOUT CONVERGENCE/ || /HAS CONVERGED/{quote}' > " + logpath  + "\n")
@@ -269,7 +277,8 @@ def printSubmitSrc(outputfile, cfgName, source, destination, pwd, logpath):
     outputfile.write("cd " + pwd + "\n")
     outputfile.write("eval `scramv1 runtime -sh`\n")
     outputfile.write("source /cvmfs/cms.cern.ch/crab3/crab.csh\n")
-    outputfile.write("setenv X509_USER_PROXY " + CRAB_CopyCert + "\n")
+    if ( not isOtherT2 and isCRAB ):
+        outputfile.write("setenv X509_USER_PROXY " + CRAB_CopyCert + "\n")
     if not(Silent):
         outputfile.write("echo 'cmsRun " + cfgName + "'\n")
         outputfile.write("cmsRun " + cfgName + "\n")
@@ -320,19 +329,26 @@ def printCrab(outputfile, iter):
     outputfile.write("config.Data.inputDataset = '" + CRAB_Data_Path + "'\n")
     outputfile.write("config.Data.splitting = 'FileBased'\n")
     outputfile.write("config.Data.unitsPerJob = " + str(unitsPerJob) + "\n")
-    if not(isOtherT2):
+    if( isOtherT2 and storageSite=="T2_BE_IIHE" ):
+       outputfile.write("config.Data.outLFN = '" + outLFN + "/iter_" + str(iter) + "'\n")
+       outputfile.write("config.User.voGroup = '" + voGroup + "'\n") #Only needed from lxplus, not from m-machines
+    else:
        outputfile.write("config.Data.inputDBS = 'global'\n")
        outputfile.write("config.Data.outLFN = '" + eosPath + "/" + dirname + "/" + "iter_" + str(iter) + "/'\n")
-    else:
-       outputfile.write("config.Data.outLFN = '" + outLFN + "'\n")
-       outputfile.write("config.Data.voGroup = '" + voGroup + "'\n")
     outputfile.write("config.Site.storageSite = '" + storageSite + "'\n")
     outputfile.write("config.JobType.outputFiles = ['EcalNtp_0.root']\n")
     outputfile.write("config.Data.publication = False\n")
 
 def printCrabHadd(outputfile, iter, pwd):
     outputfile.write("#!/bin/bash\n")
-    outputfile.write("#bsub -q " + queueForDaemon + " 'bash " + pwd + "/" + dirname + "/CRAB_files/HaddSendafterCrab_" + iter + ".sh'\n")
+    if( isOtherT2 and storageSite=="T2_BE_IIHE" and isCRAB ):
+       outputfile.write("#qsub -q localgrid@cream02 " + pwd + "/" + dirname + "/CRAB_files/HaddSendafterCrab_" + iter + ".sh\n")
+       outputfile.write("export SCRAM_ARCH=slc6_amd64_gcc491\n")
+       outputfile.write("source $VO_CMS_SW_DIR/cmsset_default.sh\n")
+       outputfile.write("source /cvmfs/cms.cern.ch/crab3/crab.sh\n")
+       outputfile.write("export X509_USER_PROXY=/localgrid/lpernie/x509up_u20580\n")
+    else:
+       outputfile.write("#bsub -q " + queueForDaemon + " 'bash " + pwd + "/" + dirname + "/CRAB_files/HaddSendafterCrab_" + iter + ".sh'\n")
     outputfile.write("cd " + pwd + "\n")
     outputfile.write("eval `scramv1 runtime -sh`\n")
     outputfile.write("AddPath='putPATHhere' #Use path1~path2 if you have more folder from CRAB. The ICs will go to the 1st path\n")
@@ -347,34 +363,56 @@ def printParallelHadd(outputfile, outFile, list, destination, pwd):
     import os, sys, imp, re
     CMSSW_VERSION=os.getenv("CMSSW_VERSION")
     outputfile.write("#!/bin/bash\n")
+    if( isOtherT2 and storageSite=="T2_BE_IIHE" and isCRAB ):
+       outputfile.write("export SCRAM_ARCH=slc6_amd64_gcc491\n")
+       outputfile.write("source $VO_CMS_SW_DIR/cmsset_default.sh\n")
+       outputfile.write("source /cvmfs/cms.cern.ch/crab3/crab.sh\n")
+       outputfile.write("export X509_USER_PROXY=/localgrid/lpernie/x509up_u20580\n")
     if(re.match("CMSSW_5_.*_.*",CMSSW_VERSION)):
          print "WARNING!!!! ----> I'm ging to use a harcoded path: /afs/cern.ch/work/l/lpernie/ECALpro/gitHubCalib/CMSSW_4_2_4/src"
          print "This because you are in a release CMSSW_5_*_*, that do not allow a hadd with a @file.list."
          outputfile.write("cd /afs/cern.ch/work/l/lpernie/ECALpro/gitHubCalib/CMSSW_4_2_4/src\n")
     else:
          outputfile.write("cd " + pwd + "\n")
-    #outputfile.write("export SCRAM_ARCH=slc5_amd64_gcc434\n")
     outputfile.write("eval `scramv1 runtime -sh`\n")
-    outputfile.write("echo 'hadd -f /tmp/" + outFile + " @" + list + "'\n")
-    outputfile.write("hadd -f /tmp/" + outFile + " @" + list  + "\n")
-    outputfile.write("echo 'cmsStage -f /tmp/" + outFile + " " + destination + "'\n")
-    outputfile.write("cmsStage -f /tmp/" + outFile + " " + destination + "\n")
-    outputfile.write("rm -f /tmp/" + outFile + "\n")
+    if( isOtherT2 and storageSite=="T2_BE_IIHE" and isCRAB ):
+       outputfile.write("echo 'hadd -f $TMPDIR/" + outFile + " @" + list + "'\n")
+       outputfile.write("hadd -f $TMPDIR/" + outFile + " @" + list  + "\n")
+       outputfile.write("echo 'srmcp file:///$TMPDIR/" + outFile + " " + destination + "/" + outFile + "'\n")
+       outputfile.write("srmcp file:///$TMPDIR/" + outFile + " " + destination + "/" + outFile + "\n")
+       outputfile.write("rm -f $TMPDIR/" + outFile + "\n")
+    else:
+       outputfile.write("echo 'hadd -f /tmp/" + outFile + " @" + list + "'\n")
+       outputfile.write("hadd -f /tmp/" + outFile + " @" + list  + "\n")
+       outputfile.write("echo 'cmsStage -f /tmp/" + outFile + " " + destination + "'\n")
+       outputfile.write("cmsStage -f /tmp/" + outFile + " " + destination + "\n")
+       outputfile.write("rm -f /tmp/" + outFile + "\n")
 
 def printFinalHadd(outputfile, list, destination, pwd):
     import os, sys, imp, re
     CMSSW_VERSION=os.getenv("CMSSW_VERSION")
     outputfile.write("#!/bin/bash\n")
+    if( isOtherT2 and storageSite=="T2_BE_IIHE" and isCRAB ):
+       outputfile.write("export SCRAM_ARCH=slc6_amd64_gcc491\n")
+       outputfile.write("source $VO_CMS_SW_DIR/cmsset_default.sh\n")
+       outputfile.write("source /cvmfs/cms.cern.ch/crab3/crab.sh\n")
+       outputfile.write("export X509_USER_PROXY=/localgrid/lpernie/x509up_u20580\n")
     if(re.match("CMSSW_5_.*_.*",CMSSW_VERSION)):
          print "WARNING!!!! ----> I'm ging to use a harcoded path: /afs/cern.ch/work/l/lpernie/ECALpro/gitHubCalib/CMSSW_4_2_4/src"
          print "This because you are in a release CMSSW_5_*_*, that do not allow a hadd with a @file.list."
          outputfile.write("cd /afs/cern.ch/work/l/lpernie/ECALpro/gitHubCalib/CMSSW_4_2_4/src\n")
     else:
          outputfile.write("cd " + pwd + "\n")
-    #outputfile.write("export SCRAM_ARCH=slc5_amd64_gcc434\n")
     outputfile.write("eval `scramv1 runtime -sh`\n")
-    outputfile.write("echo 'hadd -f /tmp/" + NameTag + "epsilonPlots.root @" + list + "'\n")
-    outputfile.write("hadd -f /tmp/" + NameTag + "epsilonPlots.root @" + list  + "\n")
-    outputfile.write("echo 'cmsStage -f /tmp//" + NameTag + "epsilonPlots.root " + destination + "'\n")
-    outputfile.write("cmsStage -f /tmp/" + NameTag + "epsilonPlots.root " + destination + "\n")
-    outputfile.write("rm -f /tmp/" + NameTag + "epsilonPlots.root\n")
+    if( isOtherT2 and storageSite=="T2_BE_IIHE" and isCRAB ):
+       outputfile.write("echo 'hadd -f $TMPDIR/" + NameTag + "epsilonPlots.root @" + list + "'\n")
+       outputfile.write("hadd -f $TMPDIR/" + NameTag + "epsilonPlots.root @" + list  + "\n")
+       outputfile.write("echo 'srmcp file:///$TMPDIR/" + NameTag + "epsilonPlots.root " + destination + "/epsilonPlots.root" + "'\n")
+       outputfile.write("srmcp file:///$TMPDIR/" + NameTag + "epsilonPlots.root " + destination + "/epsilonPlots.root" + "\n")
+       outputfile.write("rm -f $TMPDIR/" + NameTag + "epsilonPlots.root\n")
+    else:
+       outputfile.write("echo 'hadd -f /tmp/" + NameTag + "epsilonPlots.root @" + list + "'\n")
+       outputfile.write("hadd -f /tmp/" + NameTag + "epsilonPlots.root @" + list  + "\n")
+       outputfile.write("echo 'cmsStage -f /tmp//" + NameTag + "epsilonPlots.root " + destination + "'\n")
+       outputfile.write("cmsStage -f /tmp/" + NameTag + "epsilonPlots.root " + destination + "\n")
+       outputfile.write("rm -f /tmp/" + NameTag + "epsilonPlots.root\n")

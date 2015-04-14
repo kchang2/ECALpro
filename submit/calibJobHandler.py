@@ -3,34 +3,44 @@
 import subprocess, time, sys, os
 from methods import *
 
-if ( str(sys.argv[1]).find('CRAB')==-1 and str(sys.argv[1]).find('BATCH_RESU')==-1 ): # Batch system
+mode = str(sys.argv[1])
+if( isOtherT2 and storageSite=="T2_BE_IIHE" and isCRAB ):  # Beacause in IIHE the pwd give a link to the area, and you don't want that
+    pwd         = os.getenv('PWD')
+    num         = 7 #For IIHE T2 you submit all in teh same queue, and the bjobs give an output of 6 for the daemon
+else:
+    pwd         = os.getcwd()
+    num         = 2
+
+if ( mode.find('CRAB')==-1 and mode.find('BATCH_RESU')==-1 ): # Batch system
    if len(sys.argv) != 3:
-       print "usage thisPyton.py pwd nITER queue"
+       print "usage thisPyton.py nITER queue"
        sys.exit(1)
-elif ( str(sys.argv[1]).find('BATCH_RESU') != -1 ):                                   # Batch Resubmission
+elif ( mode.find('BATCH_RESU') != -1 ):                                   # Batch Resubmission
     if len(sys.argv) != 5:
-       print "usage thisPyton.py BATCH_RESU pwd nITER queue nJobs"
+       print "usage thisPyton.py BATCH_RESU nITER queue nJobs"
        sys.exit(1)
 else:                                                                                 # CRAB
     if len(sys.argv) != 5:
-       print "usage thisPyton.py CRAB currentITER queue (bsub -q " + queueForDaemon + " 'source " + str(os.getcwd()) + "/" + dirname + "/CRAB_files/HaddSendafterCrab_XXX.sh')"
+       print "usage thisPyton.py CRAB currentITER queue (bsub -q " + queueForDaemon + " 'source " + pwd + "/" + dirname + "/CRAB_files/HaddSendafterCrab_XXX.sh')"
        print "or"
-       print "Change CRAB with CRAB_RESU_FinalHadd in: (bsub -q " + queueForDaemon + " 'source " + str(os.getcwd()) + "/" + dirname + "/CRAB_files/HaddSendafterCrab_XXX.sh')"
+       print "Change CRAB with CRAB_RESU_FinalHadd in: (bsub -q " + queueForDaemon + " 'source " + pwd + "/" + dirname + "/CRAB_files/HaddSendafterCrab_XXX.sh')"
        print "or"
-       print "Change CRAB with CRAB_RESU_FitOnly in: (bsub -q " + queueForDaemon + " 'source " + str(os.getcwd()) + "/" + dirname + "/CRAB_files/HaddSendafterCrab_XXX.sh')"
+       print "Change CRAB with CRAB_RESU_FitOnly in: (bsub -q " + queueForDaemon + " 'source " + pwd + "/" + dirname + "/CRAB_files/HaddSendafterCrab_XXX.sh')"
        sys.exit(1)
 #Selec what mode you are running
 RunCRAB = True; RunBatch = True; RunResub = True;
-if ( str(sys.argv[1]).find('CRAB') != -1 ):
+if ( mode.find('CRAB') != -1 ):
      RunCRAB = True; RunBatch = False; RunResub = False;
-elif ( str(sys.argv[1]).find('BATCH_RESU') != -1 ):
+elif ( mode.find('BATCH_RESU') != -1 ):
      RunCRAB = False; RunBatch = False; RunResub = True;
 else:
      RunCRAB = False; RunBatch = True; RunResub = False;
-ONLYHADD = False; ONLYFIT = False
-if ( str(sys.argv[1]).find('ONLYHADD') != -1 ):
+ONLYHADD = False; ONLYFINHADD = False; ONLYFIT = False
+if ( mode.find('ONLYHADD') != -1 ):
      ONLYHADD = True;
-if ( str(sys.argv[1]).find('ONLYFIT') != -1 ):
+if ( mode.find('ONLYFINALHADD') != -1 ):
+     ONLYFINHADD = True;
+if ( mode.find('ONLYFIT') != -1 ):
      ONLYFIT = True;
 
 Add_path = ''
@@ -49,7 +59,6 @@ else:
     njobs = int(sys.argv[1])
     queue = sys.argv[2]
 
-pwd = os.getcwd()
 outputdir = pwd+'/'+dirname
 logPath = outputdir + '/log'
 srcPath  = outputdir + '/src'
@@ -67,16 +76,16 @@ for iters in range(nIterations):
         iters = int(sys.argv[2])
     if ( RunResub ):
         iters = iters + int(sys.argv[2])
-    if ( not RunCRAB and not ONLYHADD and not ONLYFIT ):
+    if ( not RunCRAB and not ONLYHADD and not ONLYFIT and not ONLYFINHADD ):
         print "\n*******  ITERATION " + str(iters) + "/" + str(nIterations-1) + "  *******"
         for ijob in range(njobs):
             #In case you want the stat. syst
-            if ( str(sys.argv[1]).find('BATCH_RESU_SYST_1') != -1 ):
+            if ( mode.find('BATCH_RESU_SYST_1') != -1 ):
                  env_script_n = open(outputdir + "/cfgFile/Fill/fillEpsilonPlot_iter_" + str(iters) + "_job_" + str(ijob) + ".py", 'a')
                  SystParamLine = 'process.analyzerFillEpsilon.SystOrNot = cms.untracked.double(1)\n'
                  env_script_n.write(SystParamLine)
                  env_script_n.close()
-            if ( str(sys.argv[1]).find('BATCH_RESU_SYST_2') != -1 ):
+            if ( mode.find('BATCH_RESU_SYST_2') != -1 ):
                  env_script_n = open(outputdir + "/cfgFile/Fill/fillEpsilonPlot_iter_" + str(iters) + "_job_" + str(ijob) + ".py", 'a')
                  SystParamLine = 'process.analyzerFillEpsilon.SystOrNot = cms.untracked.double(2)\n'
                  env_script_n.write(SystParamLine)
@@ -121,14 +130,22 @@ for iters in range(nIterations):
             datalines2 = (checkJobs2.communicate()[0]).splitlines()
         print 'Done with the Fill part'
     #Crab start from HADD, but it need to rebuild the list of files. So he has this additional part
-    if ( sys.argv[1] == 'CRAB' ):
+    if ( mode == 'CRAB' ):
         getGoodfile_str = ''
-        for Extra_path in ListPaths:
-            print 'LETS TRY: ' + Extra_path
-            print 'Getting Good file: ' + "cmsLs " + eosPath + "/" + dirname + "/iter_" + str(iters) + "/" + Extra_path + " | awk '{print $5}' | grep root"
-            getGoodfile = subprocess.Popen(["cmsLs " + eosPath + "/" + dirname + "/iter_" + str(iters) + "/" + Extra_path +  " | awk '{print $5}' | grep root" ], stdout=subprocess.PIPE, shell=True)
-            getGoodfile_c = getGoodfile.communicate()
-            getGoodfile_str += str(getGoodfile_c)
+        if( storageSite=="T2_CH_CERN" ):
+           for Extra_path in ListPaths:
+               print 'LETS TRY: ' + Extra_path
+               print 'Getting Good file: ' + "cmsLs " + eosPath + "/" + dirname + "/iter_" + str(iters) + "/" + Extra_path + " | awk '{print $5}' | grep root"
+               getGoodfile = subprocess.Popen(["cmsLs " + eosPath + "/" + dirname + "/iter_" + str(iters) + "/" + Extra_path +  " | awk '{print $5}' | grep root" ], stdout=subprocess.PIPE, shell=True)
+               getGoodfile_c = getGoodfile.communicate()
+               getGoodfile_str += str(getGoodfile_c)
+        if( isOtherT2 and storageSite=="T2_BE_IIHE" ):
+           for Extra_path in ListPaths:
+               print 'LETS TRY: ' + Extra_path
+               print 'Getting Good file: ' + "ls /pnfs/iihe/cms/" + outLFN + "/iter_" + str(iters) + "/" + Extra_path + " | awk '{print $1}' | grep root | awk '{print\"dcap://maite.iihe.ac.be/pnfs/iihe/cms" + outLFN + "/iter_" + str(iters) + "/" + Extra_path + "/\"$0}'"
+               getGoodfile = subprocess.Popen(["ls /pnfs/iihe/cms/" + outLFN + "/iter_" + str(iters) + "/" + Extra_path + " | awk '{print $1}' | grep root | awk '{print\"dcap://maite.iihe.ac.be/pnfs/iihe/cms" + outLFN + "/iter_" + str(iters) + "/" + Extra_path +"/\"$0}'"], stdout=subprocess.PIPE, shell=True)
+               getGoodfile_c = getGoodfile.communicate()
+               getGoodfile_str += str(getGoodfile_c)
         getGoodfile_str = getGoodfile_str.replace("\\n", " ")
         getGoodfile_str = getGoodfile_str.replace("'", "")
         getGoodfile_str = getGoodfile_str.replace("(", "")
@@ -154,10 +171,14 @@ for iters in range(nIterations):
             haddSrc_n_s.append( srcPath + "/hadd/hadd_iter_" + str(iters) + "_step_" + str(num_list)+ ".list")
             haddSrc_f_s.append( open(  haddSrc_n_s[num_list], 'w') )
             fileToAdd_final_n_s = 'root://eoscms//eos/cms' + eosPath + '/' + dirname + '/iter_' + str(iters) + '/' + Add_path + '/' + NameTag + 'epsilonPlots_' + str(num_list) + '.root\n'
+            if( isOtherT2 and storageSite=="T2_BE_IIHE" ):
+               fileToAdd_final_n_s = "dcap://maite.iihe.ac.be/pnfs/iihe/cms" + outLFN + "/iter_" + str(iters) + '/' + NameTag + 'epsilonPlots_' + str(num_list) + '.root\n'
             for nj in range(nHadd):
                 nEff = num_list*nHadd+nj
                 if( nEff < len(getGoodfile_list) ):
                     fileToAdd_n_s = 'root://eoscms//eos/cms' + str(getGoodfile_list[nEff]) + '\n'
+                    if( isOtherT2 and storageSite=="T2_BE_IIHE" ):
+                       fileToAdd_n_s = str(getGoodfile_list[nEff]) + '\n'
                     haddSrc_f_s[num_list].write(fileToAdd_n_s)
             haddSrc_final_f_s.write(fileToAdd_final_n_s)
             haddSrc_f_s[num_list].close()
@@ -166,6 +187,8 @@ for iters in range(nIterations):
         rmOLDsh = subprocess.Popen(["rm -rf " + srcPath + "/hadd/HaddCfg_iter_" + str(iters) + "_job_*.sh" ], stdout=subprocess.PIPE, shell=True)
         rmOLDsh_c = rmOLDsh.communicate()
         dest = eosPath + '/' + dirname + '/iter_' + str(iters) + '/' + Add_path
+        if( isOtherT2 and storageSite=="T2_BE_IIHE" ):
+           dest = "srm://maite.iihe.ac.be:8444/pnfs/iihe/cms" + outLFN + "/iter_" + str(iters) + "/"
         for num_list in range(Nlist):   
             hadd_cfg_n = cfgHaddPath + "/HaddCfg_iter_" + str(iters) + "_job_" + str(num_list) + ".sh"
             hadd_cfg_f = open( hadd_cfg_n, 'w' )
@@ -181,7 +204,7 @@ for iters in range(nIterations):
         Fhadd_cfg_f.close()
 
     #HADD for batch and CRAB, if you do not want just the finalHADD or the FIT
-    if ( sys.argv[1] != 'CRAB_RESU_FinalHadd' and sys.argv[1] != 'CRAB_RESU_FitOnly' and not ONLYFIT ):
+    if ( mode != 'CRAB_RESU_FinalHadd' and mode != 'CRAB_RESU_FitOnly' and not ONLYFIT and not ONLYFINHADD ):
         print 'Now adding files...'
         if not( RunCRAB ):
            inputlist_v = inputlistbase_v[:]
@@ -195,112 +218,135 @@ for iters in range(nIterations):
             Hadd_src_n = srcPath + "/hadd/HaddCfg_iter_" + str(iters) + "_job_" + str(nHadds) + ".sh"
             Hadd_log_n = logPath + "/HaddCfg_iter_" + str(iters) + "_job_" + str(nHadds) + ".log"
             Hsubmit_s = "bsub -q " + queue + " -o " + Hadd_log_n + " bash " + Hadd_src_n
+            if( isOtherT2 and storageSite=="T2_BE_IIHE" and isCRAB ):
+               Hsubmit_s = "qsub -q localgrid@cream02 -o /dev/null -e /dev/null " +  Hadd_src_n
             #Before each HADD we need ot check if the all the files in the list are present
-            Grepcommand = "grep -i list " + Hadd_src_n + " | grep -v echo | awk '{print $4}'"
-            myGrep = subprocess.Popen([Grepcommand], stdout=subprocess.PIPE, shell=True )
-            FoutGrep = myGrep.communicate()
-            FoutGrep_2 = str(FoutGrep)[3:]
-            FoutGrep_2 = str(FoutGrep_2)[:-10]
-            print 'Checking ' + str(FoutGrep_2)
-            #Chech The size for each line
-            f = open( str(FoutGrep_2) )
-            lines = f.readlines()
-            f.close()
-            NumToRem = 0
-            for filetoCheck in lines:
-                if( NumToRem!=0 ):
-                   Num = NumToRem - 1
-                   f2 = open(str(FoutGrep_2) + str(Num))
-                   lines = f2.readlines()
-                   f2.close()
-                filetoCheck2 = str(filetoCheck)[22:]
-                CheckComm = 'cmsLs -l ' + str(filetoCheck2)
-                myCheck =  subprocess.Popen([CheckComm], stdout=subprocess.PIPE, shell=True )
-                Check_output = myCheck.communicate()
-                #If file is not present, remove it from the list
-                if "No such" in str(Check_output):
-                   print 'HADD::MISSING: ' + str(filetoCheck2)
-                   print 'removing from Hadd, in: ' + str(FoutGrep_2) + str(NumToRem)
-                   f1 = open(str(FoutGrep_2) + str(NumToRem),"w")
-                   NumToRem = NumToRem + 1
-                   for line in lines:
-                       if line!=str(filetoCheck):
-                            f1.write(line)
-                   f1.close()
-                else:
-                   Splitted =  str(Check_output).split( );
-                   print "size: " + str(Splitted[1])
-                   #If is corrupted (size too small), remove it from the list
-                   if( int(Splitted[1])<10000 ):
-                        print 'HADD::Bad size for: ' + str(filetoCheck2)
-                        print 'removing from Hadd, in: ' + str(FoutGrep_2) + str(NumToRem)
-                        f1 = open(str(FoutGrep_2) + str(NumToRem),"w+")
-                        NumToRem = NumToRem + 1
-                        lines1 = f1.readlines()
-                        for line in lines:
-                            if line!=str(filetoCheck):
-                                 f1.write(line)
-                        f1.close()
-            #moving the .list to the correct one
-            if( NumToRem!=0 ):
-                NumToRem = NumToRem - 1
-                MoveComm = "cp " + str(FoutGrep_2) + str(NumToRem) + " " + str(FoutGrep_2)
-                MoveC = subprocess.Popen([MoveComm], stdout=subprocess.PIPE, shell=True);
-                mvOut = MoveC.communicate()
+            #BUT we do that only if you are working on batch
+            if not( RunCRAB ):
+               Grepcommand = "grep -i list " + Hadd_src_n + " | grep -v echo | awk '{print $4}'"
+               myGrep = subprocess.Popen([Grepcommand], stdout=subprocess.PIPE, shell=True )
+               FoutGrep = myGrep.communicate()
+               FoutGrep_2 = str(FoutGrep)[3:]
+               FoutGrep_2 = str(FoutGrep_2)[:-10]
+               print 'Checking ' + str(FoutGrep_2)
+               #Chech The size for each line
+               f = open( str(FoutGrep_2) )
+               lines = f.readlines()
+               f.close()
+               NumToRem = 0
+               for filetoCheck in lines:
+                   if( NumToRem!=0 ):
+                      Num = NumToRem - 1
+                      f2 = open(str(FoutGrep_2) + str(Num))
+                      lines = f2.readlines()
+                      f2.close()
+                   filetoCheck2 = str(filetoCheck)[22:]
+                   CheckComm = 'cmsLs -l ' + str(filetoCheck2)
+                   myCheck =  subprocess.Popen([CheckComm], stdout=subprocess.PIPE, shell=True )
+                   Check_output = myCheck.communicate()
+                   #If file is not present, remove it from the list
+                   if "No such" in str(Check_output):
+                      print 'HADD::MISSING: ' + str(filetoCheck2)
+                      print 'removing from Hadd, in: ' + str(FoutGrep_2) + str(NumToRem)
+                      f1 = open(str(FoutGrep_2) + str(NumToRem),"w")
+                      NumToRem = NumToRem + 1
+                      for line in lines:
+                          if line!=str(filetoCheck):
+                               f1.write(line)
+                      f1.close()
+                   else:
+                      Splitted =  str(Check_output).split( );
+                      print "size: " + str(Splitted[1])
+                      #If is corrupted (size too small), remove it from the list
+                      if( int(Splitted[1])<10000 ):
+                           print 'HADD::Bad size for: ' + str(filetoCheck2)
+                           print 'removing from Hadd, in: ' + str(FoutGrep_2) + str(NumToRem)
+                           f1 = open(str(FoutGrep_2) + str(NumToRem),"w+")
+                           NumToRem = NumToRem + 1
+                           lines1 = f1.readlines()
+                           for line in lines:
+                               if line!=str(filetoCheck):
+                                    f1.write(line)
+                           f1.close()
+               #moving the .list to the correct one
+               if( NumToRem!=0 ):
+                   NumToRem = NumToRem - 1
+                   MoveComm = "cp " + str(FoutGrep_2) + str(NumToRem) + " " + str(FoutGrep_2)
+                   MoveC = subprocess.Popen([MoveComm], stdout=subprocess.PIPE, shell=True);
+                   mvOut = MoveC.communicate()
             #End of the check, sending the job
+            print Hsubmit_s
             subJobs = subprocess.Popen([Hsubmit_s], stdout=subprocess.PIPE, shell=True);
             outJobs = subJobs.communicate()
             print outJobs
-            time.sleep(1)
-
-        checkJobs = subprocess.Popen(['bjobs -q ' + queue], stdout=subprocess.PIPE, shell=True);
-        datalines = (checkJobs.communicate()[0]).splitlines()
+            time.sleep(5)
+        if( isOtherT2 and storageSite=="T2_BE_IIHE" and isCRAB ):
+           checkJobs = subprocess.Popen(['qstat -u $USER localgrid@cream02'], stdout=subprocess.PIPE, shell=True);
+           datalines = (checkJobs.communicate()[0]).splitlines()
+        else:
+           checkJobs = subprocess.Popen(['bjobs -q ' + queue], stdout=subprocess.PIPE, shell=True);
+           datalines = (checkJobs.communicate()[0]).splitlines()
 
         print 'Waiting for all the hadd...'
 
         # Daemon cheking running jobs
-        while len(datalines)>=2 :
-            for entry in datalines:
-                entry = entry.rstrip()
-                entry = entry.split()[0]
-                #print entry
-                if(entry.find('JOBID')!=-1): continue
-                i = int(entry)
+        while len(datalines)>=num :
+            if( isOtherT2 and storageSite=="T2_BE_IIHE" and isCRAB ):
+               time.sleep(5)
+               checkJobs = subprocess.Popen(['qstat -u $USER localgrid@cream02'], stdout=subprocess.PIPE, shell=True);
+               datalines = (checkJobs.communicate()[0]).splitlines()
+            else:
+               for entry in datalines:
+                   entry = entry.rstrip()
+                   entry = entry.split()[0]
+                   #print entry
+                   if(entry.find('JOBID')!=-1): continue
+                   i = int(entry)
 
-            time.sleep(1)
+               time.sleep(5)
 
-            checkJobs = subprocess.Popen(['bjobs -q ' + queue], stdout=subprocess.PIPE, shell=True);
-            datalines = (checkJobs.communicate()[0]).splitlines()
-
+               checkJobs = subprocess.Popen(['bjobs -q ' + queue], stdout=subprocess.PIPE, shell=True);
+               datalines = (checkJobs.communicate()[0]).splitlines()
         print 'Done with various hadd'
 
-    if ( sys.argv[1] != 'CRAB_RESU_FitOnly' and not ONLYFIT ):
+    if ( mode != 'CRAB_RESU_FitOnly' and not ONLYFIT ):
         print 'Now The Final One...'
         FHadd_src_n = srcPath + "/hadd/Final_HaddCfg_iter_" + str(iters) + ".sh"
         FHadd_log_n = logPath + "/Final_HaddCfg_iter_" + str(iters) + ".log"
-        FHsubmit_s = "bsub -q " + queue + " -o " + FHadd_log_n + " bash " + FHadd_src_n
+        if( isOtherT2 and storageSite=="T2_BE_IIHE" and isCRAB ):
+             FHsubmit_s = "qsub -q localgrid@cream02 -o /dev/null -e /dev/null " + FHadd_src_n
+        else:
+             FHsubmit_s = "bsub -q " + queue + " -o " + FHadd_log_n + " bash " + FHadd_src_n
         FsubJobs = subprocess.Popen([FHsubmit_s], stdout=subprocess.PIPE, shell=True);
         FoutJobs = FsubJobs.communicate()
         print FoutJobs
-        time.sleep(3)
+        time.sleep(5)
 
-        FcheckJobs = subprocess.Popen(['bjobs -q ' + queue], stdout=subprocess.PIPE, shell=True);
-        Fdatalines = (FcheckJobs.communicate()[0]).splitlines()
+        if( isOtherT2 and storageSite=="T2_BE_IIHE" and isCRAB ):
+           FcheckJobs = subprocess.Popen(['qstat -u $USER localgrid@cream02'], stdout=subprocess.PIPE, shell=True);
+           Fdatalines = (FcheckJobs.communicate()[0]).splitlines()
+        else:
+           FcheckJobs = subprocess.Popen(['bjobs -q ' + queue], stdout=subprocess.PIPE, shell=True);
+           Fdatalines = (FcheckJobs.communicate()[0]).splitlines()
         print 'Waiting for the Final hadd...'
         # Daemon cheking running jobs
-        while len(Fdatalines)>=2 :
-            for entry in Fdatalines:
-                entry = entry.rstrip()
-                entry = entry.split()[0]
-                #print entry
-                if(entry.find('JOBID')!=-1): continue
-                i = int(entry)
+        while len(Fdatalines)>=num :
+            if( isOtherT2 and storageSite=="T2_BE_IIHE" and isCRAB ):
+               time.sleep(5)
+               FcheckJobs = subprocess.Popen(['qstat -u $USER localgrid@cream02'], stdout=subprocess.PIPE, shell=True);
+               Fdatalines = (FcheckJobs.communicate()[0]).splitlines()
+            else:
+               for entry in Fdatalines:
+                   entry = entry.rstrip()
+                   entry = entry.split()[0]
+                   #print entry
+                   if(entry.find('JOBID')!=-1): continue
+                   i = int(entry)
 
-            time.sleep(1)
+               time.sleep(5)
 
-            FcheckJobs = subprocess.Popen(['bjobs -q ' + queue], stdout=subprocess.PIPE, shell=True);
-            Fdatalines = (FcheckJobs.communicate()[0]).splitlines()
-
+               FcheckJobs = subprocess.Popen(['bjobs -q ' + queue], stdout=subprocess.PIPE, shell=True);
+               Fdatalines = (FcheckJobs.communicate()[0]).splitlines()
         print 'Done with final hadd'
 
     # N of Fit to send
@@ -322,19 +368,35 @@ for iters in range(nIterations):
         if(isCRAB):
             #Correct path into the cfg
             with open(fit_cfg_n, 'a') as file:
-                 file.write("process.fitEpsilon.EpsilonPlotFileName = cms.untracked.string('root://eoscms//eos/cms" + eosPath + "/" + dirname + "/iter_" + str(iters) + "/" + Add_path + "/" + NameTag + "epsilonPlots.root')\n")
-                 file.write("process.fitEpsilon.calibMapPath = cms.untracked.string('root://eoscms//eos/cms" + eosPath + "/" + dirname + "/iter_" + str(iters-1) + "/" + Add_path + "/" + NameTag + calibMapName + "')\n")
+                 if( isOtherT2 and storageSite=="T2_BE_IIHE" and isCRAB ):
+                     file.write("process.fitEpsilon.EpsilonPlotFileName = cms.untracked.string('dcap://maite.iihe.ac.be/pnfs/iihe/cms" + outLFN + "/iter_" + str(iters) + '/' + NameTag + "epsilonPlots.root')\n")
+                     file.write("process.fitEpsilon.calibMapPath = cms.untracked.string('dcap://maite.iihe.ac.be/pnfs/iihe/cms" + outLFN + "/iter_" + str(iters-1) + "/" + Add_path + "/" + NameTag + calibMapName + "')\n")
+                 else:
+                     file.write("process.fitEpsilon.EpsilonPlotFileName = cms.untracked.string('root://eoscms//eos/cms" + eosPath + "/" + dirname + "/iter_" + str(iters) + "/" + Add_path + "/" + NameTag + "epsilonPlots.root')\n")
+                     file.write("process.fitEpsilon.calibMapPath = cms.untracked.string('root://eoscms//eos/cms" + eosPath + "/" + dirname + "/iter_" + str(iters-1) + "/" + Add_path + "/" + NameTag + calibMapName + "')\n")
             #Correct path into the src
-            destination = eosPath + '/' + dirname + '/iter_' + str(iters) + "/" + Add_path + "/" + NameTag + "Barrel_" + str(inteb)+ "_" + calibMapName
             logpath = pwd + "/" + dirname + "/log/" + "fitEpsilonPlot_EB_" + str(inteb) + "_iter_" + str(iters) + ".log"
-            tmpsource = "/tmp/" + NameTag + "Barrel_" + str(inteb) + "_" + calibMapName
+            if( isOtherT2 and storageSite=="T2_BE_IIHE" and isCRAB ):
+                 tmpsource = "$TMPDIR/" + NameTag + "Barrel_" + str(inteb) + "_" + calibMapName
+                 destination = "srm://maite.iihe.ac.be:8443/pnfs/iihe/cms" + outLFN + "/iter_" + str(iters) + "/" + NameTag + "Barrel_" + str(inteb)+ "_" + calibMapName
+            else:
+                 tmpsource = "/tmp/" + NameTag + "Barrel_" + str(inteb) + "_" + calibMapName
+                 destination = eosPath + '/' + dirname + '/iter_' + str(iters) + "/" + Add_path + "/" + NameTag + "Barrel_" + str(inteb)+ "_" + calibMapName
             with open(fit_src_n, 'a') as file2:
-                 file2.write("echo 'cmsStage -f " + tmpsource + " " + destination + "' >> " + logpath  + "\n")
-                 file2.write("cmsStage -f " + tmpsource + " " + destination + " >> " + logpath + " 2>&1 \n")
+                 if( isOtherT2 and storageSite=="T2_BE_IIHE" and isCRAB ):
+                     file2.write("echo 'srmcp file:///" + tmpsource + " " + destination + "' >> " + logpath  + "\n")
+                     file2.write("srmcp file:///" + tmpsource + " " + destination + " >> " + logpath + " 2>&1 \n")
+                 else:
+                     file2.write("echo 'cmsStage -f " + tmpsource + " " + destination + "' >> " + logpath  + "\n")
+                     file2.write("cmsStage -f " + tmpsource + " " + destination + " >> " + logpath + " 2>&1 \n")
                  file2.write("echo 'rm -f " + tmpsource + "' >> " + logpath + " \n")
                  file2.write("rm -f " + tmpsource + " >> " + logpath + " 2>&1 \n")
-        submit_s = "bsub -q " + queue + " -o /dev/null -e /dev/null " + fit_src_n
-        ListFinaHaddEB.append('root://eoscms//eos/cms' + eosPath + '/' + dirname + '/iter_' + str(iters) + '/' + Add_path + '/' + NameTag + 'Barrel_'+str(inteb)+'_' + calibMapName )
+        if( isOtherT2 and storageSite=="T2_BE_IIHE" and isCRAB ):
+            submit_s = "qsub -q localgrid@cream02 -o /dev/null -e /dev/null " + fit_src_n
+            ListFinaHaddEB.append("dcap://maite.iihe.ac.be/pnfs/iihe/cms" + outLFN + "/iter_" + str(iters) + '/' + NameTag + 'Barrel_'+str(inteb) + '_' + calibMapName)
+        else:
+            submit_s = "bsub -q " + queue + " -o /dev/null -e /dev/null " + fit_src_n
+            ListFinaHaddEB.append('root://eoscms//eos/cms' + eosPath + '/' + dirname + '/iter_' + str(iters) + '/' + Add_path + '/' + NameTag + 'Barrel_'+str(inteb)+'_' + calibMapName )
         print 'About to EB fit:'
         print 'root://eoscms//eos/cms' + eosPath + '/' + dirname + '/iter_' + str(iters) + '/' + Add_path + '/' + NameTag + 'Barrel_'+str(inteb)+'_' + calibMapName
         print submit_s
@@ -352,19 +414,35 @@ for iters in range(nIterations):
         if(isCRAB):
             #Correct path into the cfg
             with open(fit_cfg_n, 'a') as file:
-                 file.write("process.fitEpsilon.EpsilonPlotFileName = cms.untracked.string('root://eoscms//eos/cms" + eosPath + "/" + dirname + "/iter_" + str(iters) + "/" + Add_path + "/" + NameTag + "epsilonPlots.root')\n")
-                 file.write("process.fitEpsilon.calibMapPath = cms.untracked.string('root://eoscms//eos/cms" + eosPath + "/" + dirname + "/iter_" + str(iters-1) + "/" + Add_path + "/" + NameTag + calibMapName + "')\n")
+                 if( isOtherT2 and storageSite=="T2_BE_IIHE" and isCRAB ):
+                     file.write("process.fitEpsilon.EpsilonPlotFileName = cms.untracked.string('dcap://maite.iihe.ac.be/pnfs/iihe/cms" + outLFN + "/iter_" + str(iters) + '/' + NameTag + "epsilonPlots.root')\n")
+                     file.write("process.fitEpsilon.calibMapPath = cms.untracked.string('dcap://maite.iihe.ac.be/pnfs/iihe/cms" + outLFN + "/iter_" + str(iters-1) + "/" + Add_path + "/" + NameTag + calibMapName + "')\n")
+                 else:
+                     file.write("process.fitEpsilon.EpsilonPlotFileName = cms.untracked.string('root://eoscms//eos/cms" + eosPath + "/" + dirname + "/iter_" + str(iters) + "/" + Add_path + "/" + NameTag + "epsilonPlots.root')\n")
+                     file.write("process.fitEpsilon.calibMapPath = cms.untracked.string('root://eoscms//eos/cms" + eosPath + "/" + dirname + "/iter_" + str(iters-1) + "/" + Add_path + "/" + NameTag + calibMapName + "')\n")
             #Correct path into the src
-            destination = eosPath + '/' + dirname + '/iter_' + str(iters) + "/" + Add_path + "/" + NameTag + "Endcap_" + str(inte)+ "_" + calibMapName
             logpath = pwd + "/" + dirname + "/log/" + "fitEpsilonPlot_EE_" + str(inte) + "_iter_" + str(iters) + ".log"
-            tmpsource = "/tmp/" + NameTag + "Endcap_" + str(inte) + "_" + calibMapName
+            if( isOtherT2 and storageSite=="T2_BE_IIHE" and isCRAB ):
+                tmpsource = "$TMPDIR/" + NameTag + "Endcap_" + str(inte) + "_" + calibMapName
+                destination = "srm://maite.iihe.ac.be:8443/pnfs/iihe/cms" + outLFN + "/iter_" + str(iters) + "/" + NameTag + "Endcap_" + str(inte)+ "_" + calibMapName
+            else:
+                tmpsource = "/tmp/" + NameTag + "Endcap_" + str(inte) + "_" + calibMapName
+                destination = eosPath + '/' + dirname + '/iter_' + str(iters) + "/" + Add_path + "/" + NameTag + "Endcap_" + str(inte)+ "_" + calibMapName
             with open(fit_src_n, 'a') as file2:
-                 file2.write("echo 'cmsStage -f " + tmpsource + " " + destination + "' >> " + logpath  + "\n")
-                 file2.write("cmsStage -f " + tmpsource + " " + destination + " >> " + logpath + " 2>&1 \n")
+                 if( isOtherT2 and storageSite=="T2_BE_IIHE" and isCRAB ):
+                     file2.write("echo 'srmcp file:///" + tmpsource + " " + destination + "' >> " + logpath  + "\n")
+                     file2.write("srmcp file:///" + tmpsource + " " + destination + " >> " + logpath + " 2>&1 \n")
+                 else:
+                     file2.write("echo 'cmsStage -f " + tmpsource + " " + destination + "' >> " + logpath  + "\n")
+                     file2.write("cmsStage -f " + tmpsource + " " + destination + " >> " + logpath + " 2>&1 \n")
                  file2.write("echo 'rm -f " + tmpsource + "' >> " + logpath + " \n")
                  file2.write("rm -f " + tmpsource + " >> " + logpath + " 2>&1 \n")
-        submit_s = "bsub -q " + queue + " -o /dev/null -e /dev/null " + fit_src_n
-        ListFinaHaddEE.append('root://eoscms//eos/cms' + eosPath + '/' + dirname + '/iter_' + str(iters) + '/' + Add_path + '/' + NameTag + 'Endcap_'+str(inte) + '_' + calibMapName)
+        if( isOtherT2 and storageSite=="T2_BE_IIHE" and isCRAB ):
+            submit_s = "qsub -q localgrid@cream02 -o /dev/null -e /dev/null " + fit_src_n
+            ListFinaHaddEE.append("dcap://maite.iihe.ac.be/pnfs/iihe/cms" + outLFN + "/iter_" + str(iters) + '/' + NameTag + 'Endcap_'+str(inte) + '_' + calibMapName)
+        else:
+            submit_s = "bsub -q " + queue + " -o /dev/null -e /dev/null " + fit_src_n
+            ListFinaHaddEE.append('root://eoscms//eos/cms' + eosPath + '/' + dirname + '/iter_' + str(iters) + '/' + Add_path + '/' + NameTag + 'Endcap_'+str(inte) + '_' + calibMapName)
         print 'About to EE fit:'
         print 'root://eoscms//eos/cms' + eosPath + '/' + dirname + '/iter_' + str(iters) + '/' + Add_path + '/' + NameTag + 'Endcap_'+str(inte) + '_' + calibMapName
         print submit_s
@@ -374,24 +452,32 @@ for iters in range(nIterations):
         print output
 
     # checking number of running/pending jobs
-    checkJobs = subprocess.Popen(['bjobs -q ' + queue], stdout=subprocess.PIPE, shell=True);
-    datalines = (checkJobs.communicate()[0]).splitlines()
-
+    if( isOtherT2 and storageSite=="T2_BE_IIHE" and isCRAB ):
+        checkJobs = subprocess.Popen(['qstat -u $USER localgrid@cream02'], stdout=subprocess.PIPE, shell=True);
+        datalines = (checkJobs.communicate()[0]).splitlines()
+    else:
+        checkJobs = subprocess.Popen(['bjobs -q ' + queue], stdout=subprocess.PIPE, shell=True);
+        datalines = (checkJobs.communicate()[0]).splitlines()
     print 'Waiting for fit jobs to be finished...'
 
     #Daemon cheking running jobs
-    while len(datalines)>=2 :
-        for entry in datalines:
-            entry = entry.rstrip()
-            entry = entry.split()[0]
-            #print entry
-            if(entry.find('JOBID')!=-1): continue
-            i = int(entry)
+    while len(datalines)>=num :
+        if( isOtherT2 and storageSite=="T2_BE_IIHE" and isCRAB ):
+            time.sleep(5)
+            checkJobs = subprocess.Popen(['qstat -u $USER localgrid@cream02'], stdout=subprocess.PIPE, shell=True);
+            datalines = (checkJobs.communicate()[0]).splitlines()
+        else:
+            for entry in datalines:
+                entry = entry.rstrip()
+                entry = entry.split()[0]
+                #print entry
+                if(entry.find('JOBID')!=-1): continue
+                i = int(entry)
 
-        time.sleep(1)
+            time.sleep(5)
 
-        checkJobs = subprocess.Popen(['bjobs -q ' + queue], stdout=subprocess.PIPE, shell=True);
-        datalines = (checkJobs.communicate()[0]).splitlines()
+            checkJobs = subprocess.Popen(['bjobs -q ' + queue], stdout=subprocess.PIPE, shell=True);
+            datalines = (checkJobs.communicate()[0]).splitlines()
 
     print "Done with fitting! Now we have to merge all fits in one Calibmap.root"
 
@@ -400,7 +486,10 @@ for iters in range(nIterations):
     from PhysicsTools.PythonAnalysis import *
     gSystem.Load("libFWCoreFWLite.so")
     AutoLibraryLoader.enable()
-    f = TFile('/tmp/' + NameTag + calibMapName, 'recreate')
+    if( isOtherT2 and storageSite=="T2_BE_IIHE" and isCRAB ):
+        f = TFile('$TMPDIR/' + NameTag + calibMapName, 'recreate')
+    else:
+        f = TFile('/tmp/' + NameTag + calibMapName, 'recreate')
     #Run only on EB or EE if needed
     ListFinaHadd = list()
     if Barrel_or_Endcap=='ONLY_BARREL':
@@ -724,13 +813,19 @@ for iters in range(nIterations):
     f.Close()
 
     print 'Now staging calibMap.root on EOS'
-    stage_s_fin = 'cmsStage /tmp/' + NameTag + calibMapName + ' ' + eosPath + '/' + dirname + '/iter_' + str(iters) + "/" + Add_path + "/" + NameTag + calibMapName
+    if( isOtherT2 and storageSite=="T2_BE_IIHE" and isCRAB ):
+        stage_s_fin = 'srmcp file:///$TMPDIR//' + NameTag + calibMapName + ' srm://maite.iihe.ac.be:8443/pnfs/iihe/cms' + outLFN + "/iter_" + str(iters) + "/" + NameTag + calibMapName
+    else:
+        stage_s_fin = 'cmsStage /tmp/' + NameTag + calibMapName + ' ' + eosPath + '/' + dirname + '/iter_' + str(iters) + "/" + Add_path + "/" + NameTag + calibMapName
     print stage_s_fin
     stageCalibFile = subprocess.Popen([stage_s_fin], stdout=subprocess.PIPE, shell=True);
     print stageCalibFile.communicate()
-    if ( str(sys.argv[1]).find('CRAB') != -1 ):
+    if ( mode.find('CRAB') != -1 ):
         print 'Since we are in CRAB mode I will also copy ' + NameTag + calibMapName + 'on data/ to be accessible from CRAB' 
-        stage_s_fin2 = 'cp /tmp/' + NameTag + calibMapName + " " + str(os.getcwd()) + "../FillEpsilonPlot/data/"
+        if( isOtherT2 and storageSite=="T2_BE_IIHE" and isCRAB ):
+            stage_s_fin2 = 'cp $TMPDIR//' + NameTag + calibMapName + " " + pwd + "/../FillEpsilonPlot/data/"
+        else:
+            stage_s_fin2 = 'cp /tmp/' + NameTag + calibMapName + " " + pwd + "/../FillEpsilonPlot/data/"
         print stage_s_fin2
         stageCalibFile2 = subprocess.Popen([stage_s_fin2], stdout=subprocess.PIPE, shell=True);
         print stageCalibFile2.communicate()
@@ -754,4 +849,8 @@ for iters in range(nIterations):
             break
 
     print "Done with iteration " + str(iters)
+    if( ONLYHADD or ONLYFINHADD or ONLYFIT):
+       mode = "BATCH_RESU"
+       ONLYHADD = False; ONLYFINHADD = False; ONLYFIT=False;
+
 print "---THE END---"

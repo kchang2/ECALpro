@@ -3,7 +3,10 @@
 import subprocess, time, sys, os
 from methods import *
 
-pwd         = os.getcwd()
+if( isOtherT2 and storageSite=="T2_BE_IIHE" and isCRAB ): # Beacause in IIHE the pwd give a link to the area, and you don't want that
+    pwd         = os.getenv('PWD')
+else:
+    pwd         = os.getcwd()
 
 #-------- check if you have right access to queues --------#
 checkAccessToQueues = subprocess.Popen(['bjobs'], stderr=subprocess.PIPE, shell=True);
@@ -12,9 +15,8 @@ if(output.find('command not found')==-1):
     print "[calib] Correct setup for batch submission"
 else:
     print "[calib] Missing access to queues"
-    sys.exit(1)
-
-#print pwd
+    if not( isCRAB and storageSite=="T2_BE_IIHE" ):
+       sys.exit(1)
 
 #-------- create folders --------#
 
@@ -47,15 +49,24 @@ folderCreation.communicate()
 folderCreation = subprocess.Popen(['mkdir -p ' + srcPath + '/hadd'], stdout=subprocess.PIPE, shell=True);
 folderCreation.communicate()
 
-print "[calib] Creating folders on EOS"
-folderCreation = subprocess.Popen(['cmsMkdir ' + eosPath + '/' + dirname ], stdout=subprocess.PIPE, shell=True);
-folderCreation.communicate()
+if( isOtherT2 and storageSite=="T2_BE_IIHE" and isCRAB ):
+   print "[calib] Creating folders on PNFS"
+   folderCreation = subprocess.Popen(['srmmkdir srm://maite.iihe.ac.be:8443' + eosPath + '/' + dirname ], stdout=subprocess.PIPE, shell=True);
+   folderCreation.communicate()
+else:
+   print "[calib] Creating folders on EOS"
+   folderCreation = subprocess.Popen(['cmsMkdir ' + eosPath + '/' + dirname ], stdout=subprocess.PIPE, shell=True);
+   folderCreation.communicate()
 
 for iter in range(nIterations):
-    print "[calib]  ---  cmsMkdir " + eosPath + '/' + dirname + '/iter_' + str(iter)
-    folderCreation = subprocess.Popen(['cmsMkdir ' + eosPath + '/' + dirname + '/iter_' + str(iter)], stdout=subprocess.PIPE, shell=True);
-    folderCreation.communicate()
-
+    if( isOtherT2 and storageSite=="T2_BE_IIHE" and isCRAB ):
+       print "[calib]  ---  srmmkdir " + eosPath + '/' + dirname + '/iter_' + str(iter)
+       folderCreation = subprocess.Popen(['srmmkdir srm://maite.iihe.ac.be:8443' + eosPath + '/' + dirname + '/iter_' + str(iter)], stdout=subprocess.PIPE, shell=True);
+       folderCreation.communicate()
+    else:
+       print "[calib]  ---  cmsMkdir " + eosPath + '/' + dirname + '/iter_' + str(iter)
+       folderCreation = subprocess.Popen(['cmsMkdir ' + eosPath + '/' + dirname + '/iter_' + str(iter)], stdout=subprocess.PIPE, shell=True);
+       folderCreation.communicate()
 
 #-------- fill cfg files --------#
 if( isCRAB ):
@@ -196,7 +207,6 @@ for iter in range(nIterations):
 
         # print the cfg file
         printFitCfg( fit_cfg_f , iter, "/tmp",inListB[nFit],finListB[nFit],"Barrel",nFit)
-
         fit_cfg_f.close()
 
         # print source file for batch submission of FitEpsilonPlot task
@@ -204,7 +214,10 @@ for iter in range(nIterations):
         fitSrc_f = open( fitSrc_n, 'w')
         destination_s = eosPath + '/' + dirname + '/iter_' + str(iter) + "/" + NameTag + "Barrel_" + str(nFit)+ "_" + calibMapName
         logpath = pwd + "/" + dirname + "/log/" + "fitEpsilonPlot_EB_" + str(nFit) + "_iter_" + str(iter) + ".log"
-        printSubmitFitSrc(fitSrc_f, fit_cfg_n, "/tmp/" + NameTag + "Barrel_" + str(nFit) + "_" + calibMapName, destination_s, pwd, logpath)
+        if( isOtherT2 and storageSite=="T2_BE_IIHE" and isCRAB ):
+            printSubmitFitSrc(fitSrc_f, fit_cfg_n, "$TMPDIR/" + NameTag + "Barrel_" + str(nFit) + "_" + calibMapName, destination_s, pwd, logpath)
+        else:
+            printSubmitFitSrc(fitSrc_f, fit_cfg_n, "/tmp/" + NameTag + "Barrel_" + str(nFit) + "_" + calibMapName, destination_s, pwd, logpath)
         fitSrc_f.close()
 
         # make the source file executable
@@ -217,7 +230,10 @@ for iter in range(nIterations):
         fit_cfg_f = open( fit_cfg_n, 'w' )
 
         # print the cfg file
-        printFitCfg( fit_cfg_f , iter, "/tmp",inListE[nFit],finListE[nFit],"Endcap",nFit)
+        if( isOtherT2 and storageSite=="T2_BE_IIHE" and isCRAB ):
+            printFitCfg( fit_cfg_f , iter, "/tmp",inListE[nFit],finListE[nFit],"Endcap",nFit)
+        else:
+            printFitCfg( fit_cfg_f , iter, "$TMPDIR",inListE[nFit],finListE[nFit],"Endcap",nFit)
 
         fit_cfg_f.close()
 
@@ -226,7 +242,10 @@ for iter in range(nIterations):
         fitSrc_f = open( fitSrc_n, 'w')
         destination_s = eosPath + '/' + dirname + '/iter_' + str(iter) + "/" + NameTag + "Endcap_" + str(nFit) + "_" + calibMapName
         logpath = pwd + "/" + dirname + "/log/" + "fitEpsilonPlot_EE_" + str(nFit) + "_iter_" + str(iter) + ".log"
-        printSubmitFitSrc(fitSrc_f, fit_cfg_n, "/tmp/" + NameTag + "Endcap_" + str(nFit)+ "_" + calibMapName, destination_s, pwd, logpath)
+        if( isOtherT2 and storageSite=="T2_BE_IIHE" and isCRAB ):
+            printSubmitFitSrc(fitSrc_f, fit_cfg_n, "/tmp/" + NameTag + "Endcap_" + str(nFit)+ "_" + calibMapName, destination_s, pwd, logpath)
+        else:
+            printSubmitFitSrc(fitSrc_f, fit_cfg_n, "$TMPDIR/" + NameTag + "Endcap_" + str(nFit)+ "_" + calibMapName, destination_s, pwd, logpath)
         fitSrc_f.close()
 
         # make the source file executable
@@ -267,7 +286,7 @@ if( isCRAB ):
     print "---------------------------------"
     print "Here it is how it works with CRAB:"
     print "--> 1) You will run the crab_eos_0.cfg I wrote for you in: " + workdir + "/CRAB_files/crab_eos.cfg: \n  --->crab submit -c crab_eos_X.py"
-    print "--> 2) When all the outputs are on EOS you will launch the second part of the script to do the HADD and the FIT with the command:\n  --->bsub -q " + queueForDaemon + " 'bash " + pwd + "/ALL_NeuPt2_20_PU40x25_01/CRAB_files/HaddSendafterCrab_XXX.sh'"
+    print "--> 2) When all the outputs are on EOS you will launch the second part of the script to do the HADD and the FIT with the command:\n  --->bsub -q " + queueForDaemon + " 'bash " + workdir + "/CRAB_files/HaddSendafterCrab_XXX.sh'"
     print "--> 3) Once it has finished you will re-run CRAB importing the constant you produced" #!!! this part is not clear.
     print "--> 4) Then you repeat all these steps for all the iterations you need. Good luck."
     # in the futur launch a script that send crab automatically

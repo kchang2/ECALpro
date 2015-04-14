@@ -61,7 +61,7 @@ struct FFitResult {
 FFitResult FitFit(TH1D* h, double xmin, double xmax, int events, int Name, FILE *file_txt, float eff , bool Are_pi0_, int LH, bool isEB);
 
 //.x Step2_FitHisto.C("ALL_MINBIAS_UNCAL_L1_NOL1FILTER", "Fstep1_EB_eta.root", true, false)
-void Step2_FitHisto(TString folder="ALL_MINBIAS_UNCAL_L1_NOL1FILTER_40PU25ns", TString file="Fstep1_EB_eta.root", bool isEB=true, bool Are_pi0_=false){
+void Step2_FitHisto(TString folder="ALL_MINBIAS_UNCAL_L1_NOL1FILTER_40PU50ns_OnTopJosh", TString file="Fstep1_EB_eta.root", bool isEB=true, bool Are_pi0_=false){
 
   //Open Input File
   TFile *f1 = new TFile( (folder + "/" + file).Data(),"r" );
@@ -100,7 +100,7 @@ void Step2_FitHisto(TString folder="ALL_MINBIAS_UNCAL_L1_NOL1FILTER_40PU25ns", T
   cout << "Now starting the Fit procedure ..." << endl;
   double                  xmin=0.1, xmax=0.18;   //Pi0 EB
   if(Are_pi0_ && !isEB){  xmin=0.07; xmax=0.2; }//Pi0 EE
-  if(!Are_pi0_ && isEB){  xmin=0.32; xmax=0.7; }//Eta EB
+  if(!Are_pi0_ && isEB){  xmin=0.41; xmax=0.65; }//Eta EB
   if(!Are_pi0_ && !isEB){ xmin=0.32; xmax=0.9; }//Eta EE
   //Low and High eta region
   TH2F *histo, *histo_tot;
@@ -138,6 +138,7 @@ void Step2_FitHisto(TString folder="ALL_MINBIAS_UNCAL_L1_NOL1FILTER_40PU25ns", T
 	float eff =  (float)Nentr/(float)Nentr_tot;
 	if(eff>0.002){
 	  FFitResult res;
+	  cout<<"AAAA"<<xmin<<" "<<xmax<<" "<<integral<<" isEB "<<isEB<<" Are_pi0_ "<<Are_pi0_<<endl;
 	  res = FitFit(h1, xmin, xmax, Nentr, i, file_txt, eff, Are_pi0_, LH, isEB);
 	}
     }
@@ -172,7 +173,7 @@ FFitResult FitFit(TH1D* h, double xmin, double xmax, int events, int Name, FILE 
 
   RooArgList cbpars(cb0,cb1);
   if( Are_pi0_ && !isEB ) cbpars.add(cb2);
-  if( Are_pi0_ && isEB && HL==0 ) cbpars.add(cb2);
+  if( Are_pi0_ && isEB && LH==0 ) cbpars.add(cb2);
   RooChebychev bkg("bkg","bkg model", x, cbpars );
 
   RooRealVar Nbkg("Nbkg","background yield",1.e3,0.,h->GetSum());

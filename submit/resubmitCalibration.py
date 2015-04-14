@@ -24,6 +24,8 @@ if SystParam != 0 :
     Mode = Mode + "_SYST_" + str(SystParam)
 if onlyHadd=="True" :
     Mode = Mode + "_ONLYHADD"
+if onlyFinalHadd=="True" :
+    Mode = Mode + "_ONLYFINALHADD"
 if OnlyFIT=="True" :
     Mode = Mode + "_ONLYFIT"
 

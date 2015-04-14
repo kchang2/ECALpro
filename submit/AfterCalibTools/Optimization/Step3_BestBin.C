@@ -85,11 +85,11 @@ void Step3_BestBin(TString Input, int nLine, TString Input2, int nLine2){
   tmp1 = -1.;   int bin3 = -1.;
   tmp2 = 100.;  int bin4 = -1.;
   for(unsigned int i(0); i<values_effH.size(); i++){
-    if(values_sbH[i] > tmp1 && values_chiH[i]<0.044 ){
+    if(values_sbH[i] > tmp1 && values_chiH[i]<0.044 && values_effH[i]>0.28 ){
 	tmp1 = values_sbH[i];
 	bin3 = i; cout<<"-->HIGH_ETA LOW S/B bin:  "<<values_sbH[i]<<" bin "<<values_binH[bin3]<<endl;
     }
-    if(values_muH[i] < tmp2 && values_chiH[i]<0.044 ){
+    if(values_muH[i] < tmp2 && values_chiH[i]<0.044 && values_effH[i]>0.28 ){
 	tmp2 = values_muH[i];
 	bin4 = i; cout<<"-->HIGH_ETA HIGH Mu bin:  "<<values_muH[i]<<" bin "<<values_binH[bin4]<<endl;
     }
