@@ -30,7 +30,7 @@
 using namespace std;
 
 //.x Step1_MakeHistos.C+("ALL_MINBIAS_UNCAL_L1_NOL1FILTER", true, true)
-void Step1_MakeHistos( TString folder = "ALL_MINBIAS_UNCAL_L1_NOL1FILTER_40PU50ns_OnTopJosh", bool isEB=true, bool isPi0=false ){
+void Step1_MakeHistos( TString folder = "ALL_MINBIAS_UNCAL_L1_NOL1FILTER_40PU50ns_OnTopJosh_noCC", bool isEB=false, bool isPi0=true ){
 
   //Check options
   if(isEB)  cout<<"Running on Barrel"<<endl;
@@ -64,7 +64,7 @@ void Step1_MakeHistos( TString folder = "ALL_MINBIAS_UNCAL_L1_NOL1FILTER_40PU50n
   //Input File
   TChain *tree = new TChain("Tree_Optim","Tree_Optim");
   //tree->Add("root://eoscms//eos/cms/store/group/dpg_ecal/alca_ecalcalib/lpernie/ALL_MINBIAS_UNCAL_L1_NOL1FILTER_40PU25ns_EB_eta/iter_0/EcalNtp_0.root");
-  tree->Add("root://eoscms//eos/cms/store/group/dpg_ecal/alca_ecalcalib/lpernie/ALL_MINBIAS_UNCAL_optimized_40PU50ns_EB_eta/iter_0/epsilonPlots.root");
+  tree->Add("root://eoscms//eos/cms/store/group/dpg_ecal/alca_ecalcalib/lpernie/ALL_MINBIAS_UNCAL_optimized_40PU50ns_EE_pi0/iter_0/epsilonPlots.root");
   Int_t event = tree->GetEntries();
   cout << "Number of events in tree: " << event << endl;
   //Check TTree
@@ -82,21 +82,25 @@ void Step1_MakeHistos( TString folder = "ALL_MINBIAS_UNCAL_L1_NOL1FILTER_40PU50n
   Int_t npi;
   tree->SetBranchAddress("STr2_NPi0_rec",&npi);
   Float_t  massPi0[NPI0MAX];
-  if(isPi0) tree->SetBranchAddress("STr2_mPi0_rec",&massPi0);
-  else      tree->SetBranchAddress("STr2_mPi0_nocor",&massPi0);
+  //if(isPi0) tree->SetBranchAddress("STr2_mPi0_rec",&massPi0);
+  //else      tree->SetBranchAddress("STr2_mPi0_nocor",&massPi0);
+  tree->SetBranchAddress("STr2_mPi0_nocor",&massPi0);
   Int_t    iseb[NPI0MAX];
   tree->SetBranchAddress("STr2_Pi0recIsEB",&iseb); // 1=barrrel, 2=endcap
   Float_t  ptpi0[NPI0MAX];
-  if(isPi0) tree->SetBranchAddress("STr2_ptPi0_rec",&ptpi0);
-  else      tree->SetBranchAddress("STr2_ptPi0_nocor",&ptpi0);
+  //if(isPi0) tree->SetBranchAddress("STr2_ptPi0_rec",&ptpi0);
+  //else      tree->SetBranchAddress("STr2_ptPi0_nocor",&ptpi0);
+  tree->SetBranchAddress("STr2_ptPi0_nocor",&ptpi0);
   Float_t  etapi0[NPI0MAX];
   tree->SetBranchAddress("STr2_etaPi0_rec",&etapi0);
   Float_t ptclu1[NPI0MAX];
-  if(isPi0) tree->SetBranchAddress("STr2_ptG1_rec",&ptclu1);
-  else      tree->SetBranchAddress("STr2_ptG1_nocor",&ptclu1);
+  //if(isPi0) tree->SetBranchAddress("STr2_ptG1_rec",&ptclu1);
+  //else      tree->SetBranchAddress("STr2_ptG1_nocor",&ptclu1);
+  tree->SetBranchAddress("STr2_ptG1_nocor",&ptclu1);
   Float_t ptclu2[NPI0MAX];
-  if(isPi0) tree->SetBranchAddress("STr2_ptG2_rec",&ptclu2);
-  else      tree->SetBranchAddress("STr2_ptG2_nocor",&ptclu2);
+  //if(isPi0) tree->SetBranchAddress("STr2_ptG2_rec",&ptclu2);
+  //else      tree->SetBranchAddress("STr2_ptG2_nocor",&ptclu2);
+  tree->SetBranchAddress("STr2_ptG2_nocor",&ptclu2);
   Int_t ncris1[NPI0MAX];
   tree->SetBranchAddress("STr2_n1CrisPi0_rec",&ncris1);
   Int_t ncris2[NPI0MAX];

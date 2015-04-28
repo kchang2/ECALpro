@@ -61,7 +61,7 @@ struct FFitResult {
 FFitResult FitFit(TH1D* h, double xmin, double xmax, int events, int Name, FILE *file_txt, float eff , bool Are_pi0_, int LH, bool isEB);
 
 //.x Step2_FitHisto.C("ALL_MINBIAS_UNCAL_L1_NOL1FILTER", "Fstep1_EB_eta.root", true, false)
-void Step2_FitHisto(TString folder="ALL_MINBIAS_UNCAL_L1_NOL1FILTER_40PU50ns_OnTopJosh", TString file="Fstep1_EB_eta.root", bool isEB=true, bool Are_pi0_=false){
+void Step2_FitHisto(TString folder="ALL_MINBIAS_UNCAL_L1_NOL1FILTER_40PU50ns_OnTopJosh_noCC", TString file="Fstep1_EB_pi0.root", bool isEB=true, bool Are_pi0_=true){
 
   //Open Input File
   TFile *f1 = new TFile( (folder + "/" + file).Data(),"r" );
@@ -98,13 +98,15 @@ void Step2_FitHisto(TString folder="ALL_MINBIAS_UNCAL_L1_NOL1FILTER_40PU50ns_OnT
   file_txt=fopen( (folder + "/" + out_f).Data(),"w" );
   //FIT
   cout << "Now starting the Fit procedure ..." << endl;
-  double                  xmin=0.1, xmax=0.18;   //Pi0 EB
-  if(Are_pi0_ && !isEB){  xmin=0.07; xmax=0.2; }//Pi0 EE
-  if(!Are_pi0_ && isEB){  xmin=0.41; xmax=0.65; }//Eta EB
-  if(!Are_pi0_ && !isEB){ xmin=0.32; xmax=0.9; }//Eta EE
+  double                  xmin=0.1, xmax=0.18;   //Pi0 EB L
   //Low and High eta region
   TH2F *histo, *histo_tot;
   for(int LH=0; LH<2; LH++){
+    if(Are_pi0_ && isEB && LH==1 ){ xmin=0.1; xmax=0.19; } //Pi0 EB H
+    if(Are_pi0_ && !isEB){          xmin=0.07; xmax=0.2; } //Pi0 EE
+    if(!Are_pi0_ && isEB && LH==0){ xmin=0.39; xmax=0.68; }//Eta EB L
+    if(!Are_pi0_ && isEB && LH==1){ xmin=0.39; xmax=0.7; }//Eta EB H
+    if(!Are_pi0_ && !isEB){         xmin=0.32; xmax=0.9; } //Eta EE
     if( LH==0 ){
 	histo = histoL;
 	histo_tot = histo_totL;
@@ -112,13 +114,12 @@ void Step2_FitHisto(TString folder="ALL_MINBIAS_UNCAL_L1_NOL1FILTER_40PU50ns_OnT
     if( LH==1 ){
 	histo = histoH;
 	histo_tot = histo_totH;
-	if(Are_pi0_ && isEB){ xmin=0.1; xmax=0.19; } //Refining for pi0 EB H
     }
     cout<<"You have "<<histo->GetNbinsX()<<" bins..."<<endl;  
     //Loop on the histo
     for(int i=0; i<histo->GetNbinsX(); i++){
-//if( LH==0 ) continue;
-//if( i!=6849 && LH==1 ) continue;
+//if( LH==1 ) continue;
+//if( i!=6842 ) continue;
 	TH1D *h1;
 	TH1D *h1_tot;
 	h1 = histo->ProjectionY("_py",i+1,i+1);
@@ -131,15 +132,19 @@ void Step2_FitHisto(TString folder="ALL_MINBIAS_UNCAL_L1_NOL1FILTER_40PU50ns_OnT
 	  iMax = h1->GetXaxis()->FindBin(0.18);
 	}
 	else{
-	  iMin = h1->GetXaxis()->FindBin(0.35);
-	  iMax = h1->GetXaxis()->FindBin(0.6);
+	  iMin = h1->GetXaxis()->FindBin(0.47);
+	  iMax = h1->GetXaxis()->FindBin(0.57);
 	}
 	double integral = h1->Integral(iMin, iMax);
 	float eff =  (float)Nentr/(float)Nentr_tot;
 	if(eff>0.002){
-	  FFitResult res;
-	  cout<<"AAAA"<<xmin<<" "<<xmax<<" "<<integral<<" isEB "<<isEB<<" Are_pi0_ "<<Are_pi0_<<endl;
-	  res = FitFit(h1, xmin, xmax, Nentr, i, file_txt, eff, Are_pi0_, LH, isEB);
+	  float chi2s;
+	  int Try=1;
+	  chi2s = FitFit(h1, xmin, xmax, Nentr, i, file_txt, eff, Are_pi0_, LH, isEB);
+	  while( chi2s>0.05 && Try<10 ){
+	    chi2s = FitFit(h1, xmin+Try*0.0005, xmax-Try*0.001, Nentr, i, file_txt, eff, Are_pi0_, LH, isEB);
+	    Try++;
+	  }
 	}
     }
   }
@@ -147,7 +152,7 @@ void Step2_FitHisto(TString folder="ALL_MINBIAS_UNCAL_L1_NOL1FILTER_40PU50ns_OnT
   outPut->Close();
 }
 
-FFitResult FitFit(TH1D* h, double xmin, double xmax, int events, int Name, FILE *file_txt, float eff , bool Are_pi0_, int LH, bool isEB){
+float FitFit(TH1D* h, double xmin, double xmax, int events, int Name, FILE *file_txt, float eff , bool Are_pi0_, int LH, bool isEB){
 
   stringstream ss; ss << Name;
   TString preName = "BinL_";
@@ -174,6 +179,7 @@ FFitResult FitFit(TH1D* h, double xmin, double xmax, int events, int Name, FILE 
   RooArgList cbpars(cb0,cb1);
   if( Are_pi0_ && !isEB ) cbpars.add(cb2);
   if( Are_pi0_ && isEB && LH==0 ) cbpars.add(cb2);
+  if( !Are_pi0_ ) cbpars.add(cb2);
   RooChebychev bkg("bkg","bkg model", x, cbpars );
 
   RooRealVar Nbkg("Nbkg","background yield",1.e3,0.,h->GetSum());
@@ -222,7 +228,7 @@ FFitResult FitFit(TH1D* h, double xmin, double xmax, int events, int Name, FILE 
   result.neve=effic;                                                                                         
   result.errore = result.SoB*sqrt( pow(normSig*Nsig.getError()/result.S,2) +pow(normBkg*Nbkg.getError()/result.B,2) ) ;
 
-  result.fram=xframe;  
+  result.fram=xframe; 
 
   TLatex lat;
   char line[300];
@@ -242,10 +248,12 @@ FFitResult FitFit(TH1D* h, double xmin, double xmax, int events, int Name, FILE 
   lat.DrawLatex(Xmin,Yhi-4.*Ypass, line);
   sprintf(line,"Efficiency: %.3f", eff );
   lat.DrawLatex(Xmin,Yhi-5.*Ypass, line);
-  if( xframe->chiSquare()/result.dof<0.02 && result.S/result.B>0.001 && mean.getVal()<Are_pi0_?0.2:0.65 && mean.getVal()>Are_pi0_?0.01:0.45 ){
+cout<<"AAA "<<xframe->chiSquare()/result.dof<<endl;
+  if( xframe->chiSquare()/result.dof<0.05 ){
     if(LH==0) fprintf(file_txt,"L_BIN %i  SB %.5f  MuSi %.5f  CHI %.5f  Eff %.5f \n", Name, result.S/result.B, mean.getError()/mean.getVal(), result.chi2/result.dof, eff );
     if(LH==1) fprintf(file_txt,"H_BIN %i  SB %.5f  MuSi %.5f  CHI %.5f  Eff %.5f \n", Name, result.S/result.B, mean.getError()/mean.getVal(), result.chi2/result.dof, eff );
   }
   myc1->Write();
   delete myc1;
+  return result.chi2/result.dof;
 }
