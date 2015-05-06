@@ -1868,15 +1868,11 @@ void FillEpsilonPlot::beginRun(edm::Run const&, edm::EventSetup const& iSetup) {
 }
 
 bool FillEpsilonPlot::checkStatusOfEcalRecHit(const EcalChannelStatus &channelStatus,const EcalRecHit &rh){
-
   int status =  int(channelStatus[rh.id().rawId()].getStatusCode()); 
-  //cout<<"Status "<<status<<endl; //0 or 1
   if ( status > 0/*statusLevelRecHitsToUsea_*/ ) return false; 
   return true; 
-  //OR
-  //if(RecHitsInWindow[j]->checkFlag()==0 ) cout<<"FLAG bad"<<endl;
-  //if(!All_rechit_good) cout<<"EB: "<<(int)RecHitsInWindow[j]->recoFlag()<<endl;
 }
+
 bool FillEpsilonPlot::isInDeadMap( bool isEB, const EcalRecHit &rh ){
   bool isBad=false;
   if(isEB){

@@ -7,7 +7,7 @@ ExternalGeometry = 'caloGeometry.root'
 CalibType        = 'xtal'              # Calibrating single xtals. I never try but you could calibrate EtaRing ot Trigger Towers
 
 #Are Pi0
-Are_pi0          = False                # True = using Pi0, False = using Eta
+Are_pi0          = True                # True = using Pi0, False = using Eta
 #PATH
 #eosPath = '/store/caf/user/lpernie'
 eosPath = '/store/group/dpg_ecal/alca_ecalcalib/lpernie'
@@ -27,21 +27,21 @@ if(isCRAB):
        outLFN      = "/store/user/lpernie/ALL_CRAB_IIHE_03/"
 #MC and Selection Optimization
 isMC = True
-MakeNtuple4optimization = True
+MakeNtuple4optimization = False
 #InputList and Folder name
-inputlist_n      = 'ALL_MINBIAS_UNCAL_L1_NOL1FILTER_40PU50ns_OPTIMIZED.list' # list of the input files
-dirname          = 'ALL_MINBIAS_UNCAL_optimized_40PU50ns_EE_eta'
+inputlist_n      = 'ALL_MINBIAS_NOUNCAL_L1_NOL1FILTER_20bx25_7e33.list' # list of the input files
+dirname          = 'ALL_MINBIAS_UNCAL_optimized_20bx25_7e33_prova'
 Silent           = False                 # True->Fill modules is silent; False->Fill modules has a standard output
 #TAG, QUEUE and ITERS
 NameTag          = ''                   # Tag to the names to avoid overlap
 queueForDaemon   = 'cmscaf1nw'          # Option suggested: 2nw/2nd, 1nw/1nd, cmscaf1nw/cmscaf1nd... even cmscaf2nw
 queue            = 'cmscaf1nd'
-nIterations = 1
+nIterations = 8
 #N files
 ijobmax          = 3                     # 5 number of files per job
-nHadd            = 35                    # 50 number of files per hadd
+nHadd            = 30                    # 35 number of files per hadd
 nFit             = 2000                  # number of fits done in parallel
-Barrel_or_Endcap = 'ONLY_ENDCAP'         # Option: 'ONLY_BARREL','ONLY_ENDCAP','ALL_PLEASE'
+Barrel_or_Endcap = 'ALL_PLEASE'         # Option: 'ONLY_BARREL','ONLY_ENDCAP','ALL_PLEASE'
 #Remove Xtral Dead
 RemoveDead_Flag = "True"
 RemoveDead_Map  = ""
@@ -60,7 +60,7 @@ MC_Asssoc = False
 EB_Seed_E    = '0.5'
 useEE_EtSeed = 'False'
 EE_Seed_Et   = '0.5'
-EE_Seed_E    = '1.0' #1.5 for 40PU25
+EE_Seed_E    = '1.5' #1.5 for 40PU25
 #Selection
 CutOnHLTIso = "False"
 if(Are_pi0):
@@ -218,6 +218,7 @@ useOnlyEEClusterMatchedWithES = 'True'
 laserTagRecord='';laserTag='';laserDB=''
 alphaTagRecord2='';alphaTag2='';alphaDB2=''
 GeVTagRecord='';GeVTag='';GeVDB=''
+FROMDIGI=False
 
 ######################################################################
 # Now decomment the part that correspond to data you want to run on. #
@@ -485,7 +486,7 @@ GeVTagRecord='';GeVTag='';GeVDB=''
 #esInputTag = "InputTag('hltAlCaPi0RecHitsFilterEEonly','pi0EcalRecHitsES','TEST')"
 #useHLTFilter = "False"                                        # Add to the path the request of a HLT path:  process.AlcaP0Filter.HLTPaths = 
 #correctHits = 'False'
-#globaltag='MCRUN2_72_V1A::All'
+#globaltag='MCRUN2_74_V6A::All'
 #HLTPaths='AlCa_EcalPi0_*'                                     # Name of the HLT path selected with useHLTFilter
 
 ## MC 40bx25 HLT ALCARAW
@@ -515,21 +516,30 @@ doLaserCorr="False"
 if(Are_pi0):                                           # Member of Recalibration Module
    ebInputTag = "InputTag('hltAlCaPi0EBUncalibrator','pi0EcalRecHitsEB')"
    eeInputTag = "InputTag('hltAlCaPi0EEUncalibrator','pi0EcalRecHitsEE')"
-#   esInputTag = "InputTag('hltAlCaPi0RecHitsFilterEEonly','pi0EcalRecHitsES','TEST')"  #40PU 25 ns
-   esInputTag = "InputTag('hltAlCaPi0RecHitsFilterEEonlyRegional','pi0EcalRecHitsES','TEST')"  #40PU 50 ns
+   esInputTag = "InputTag('hltAlCaPi0RecHitsFilterEEonlyRegional','pi0EcalRecHitsES','TEST')"
 else:
    ebInputTag = "InputTag('hltAlCaEtaEBUncalibrator','etaEcalRecHitsEB','TEST')"
    eeInputTag = "InputTag('hltAlCaEtaEEUncalibrator','etaEcalRecHitsEE','TEST')"
-#   esInputTag = "InputTag('hltAlCaEtaRecHitsFilterEEonly','etaEcalRecHitsES','TEST')"  #40PU 25 ns
-   esInputTag = "InputTag('hltAlCaEtaRecHitsFilterEEonlyRegional','etaEcalRecHitsES','TEST')"  #40PU 50 ns
+   esInputTag = "InputTag('hltAlCaEtaRecHitsFilterEEonlyRegional','etaEcalRecHitsES','TEST')"
 hltGtDigis = "InputTag('simGtDigis','','TEST')"
 triggerTag = 'InputTag("TriggerResults","","TEST")'
 hltL1GtObjectMap = 'InputTag("hltL1GtObjectMap","","TEST")'
 useHLTFilter = "False"                                        # Add to the path the request of a HLT path:  process.AlcaP0Filter.HLTPaths = 
 correctHits = 'False'
-globaltag='MCRUN2_72_V1A::All'
+globaltag='MCRUN2_74_V6A::All'
 HLTPaths='AlCa_EcalPi0_*'                                     # Name of the HLT path selected with useHLTFilter
 isMC = True
+FROMDIGI = True
+is50ns = False
+if(FROMDIGI):
+   ebInputTag = 'InputTag("ecalRecHit","EcalRecHitsEB","analyzerFillEpsilon")'
+   eeInputTag = 'InputTag("ecalRecHit","EcalRecHitsEE","analyzerFillEpsilon")'
+   if(Are_pi0): 
+      EBdigi = 'InputTag("hltAlCaPi0EBRechitsToDigis","pi0EBDigis","TEST")'
+      EEdigi = 'InputTag("hltAlCaPi0EERechitsToDigis","pi0EEDigis","TEST")'
+   else:
+      EBdigi = 'InputTag("hltAlCaEtaEBRechitsToDigis","etaEBDigis","TEST")'
+      EEdigi = 'InputTag("hltAlCaEtaEERechitsToDigis","etaEEDigis","TEST")'
 
 ##MC CRAB Neutrino GUN
 #HLTResults = 'False'                                          # Use the function GetHLTResults(iEvent, "AlCa_EcalPi0EBonly.*");
@@ -547,7 +557,7 @@ isMC = True
 #hltL1GtObjectMap = 'InputTag("hltL1GtObjectMap","","TEST")'
 #useHLTFilter = "False"                                        # Add to the path the request of a HLT path:  process.AlcaP0Filter.HLTPaths = 
 #correctHits = 'False'
-#globaltag='MCRUN2_72_V1A::All'
+#globaltag='MCRUN2_74_V6A::All'
 #HLTPaths='AlCa_EcalPi0_*'                                     # Name of the HLT path selected with useHLTFilter
 #isMC = True
 
@@ -567,7 +577,7 @@ isMC = True
 #hltL1GtObjectMap = 'InputTag("hltL1GtObjectMap","","TEST")'
 #useHLTFilter = "False"                                        # Add to the path the request of a HLT path:  process.AlcaP0Filter.HLTPaths = 
 #correctHits = 'False'
-#globaltag='MCRUN2_72_V1A::All'
+#globaltag='MCRUN2_74_V6A::All'
 #HLTPaths='AlCa_EcalPi0_*'                                     # Name of the HLT path selected with useHLTFilter
 #isMC = True
 #MC_Asssoc = True

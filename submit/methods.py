@@ -10,10 +10,39 @@ def printFillCfg1( outputfile ):
     outputfile.write('CMSSW_VERSION=os.getenv("CMSSW_VERSION")\n')
     outputfile.write('process = cms.Process("analyzerFillEpsilon")\n')
     outputfile.write('process.load("FWCore.MessageService.MessageLogger_cfi")\n\n')
-    #outputfile.write('if(re.match("CMSSW_5_.*_.*",CMSSW_VERSION)):\n')
     outputfile.write('process.load("Configuration.Geometry.GeometryIdeal_cff")\n')
     outputfile.write('process.load("Configuration.StandardSequences.FrontierConditions_GlobalTag_cff")\n')
     outputfile.write("process.GlobalTag.globaltag = '" + globaltag + "'\n")
+    #From DIGI
+    if (FROMDIGI):
+        outputfile.write("#RAW to DIGI'\n")
+        outputfile.write("#https://github.com/cms-sw/cmssw/blob/CMSSW_7_5_X/RecoLocalCalo/EcalRecProducers/test/testMultipleEcalRecoLocal_cfg.py\n")
+        outputfile.write("#process.load('Configuration.StandardSequences.RawToDigi_cff')\n")
+        outputfile.write("#process.raw2digi_step = cms.Sequence(process.RawToDigi)\n")
+        outputfile.write("#DIGI to UNCALIB\n")
+        outputfile.write("#https://github.com/cms-sw/cmssw/blob/CMSSW_7_5_X/RecoLocalCalo/EcalRecProducers/test/testMultipleEcalRecoLocal_cfg.py\n")
+        outputfile.write("process.load('Configuration.StandardSequences.Reconstruction_cff')\n")
+        outputfile.write("import RecoLocalCalo.EcalRecProducers.ecalMultiFitUncalibRecHit_cfi\n")
+        outputfile.write("process.ecalMultiFitUncalibRecHit =  RecoLocalCalo.EcalRecProducers.ecalMultiFitUncalibRecHit_cfi.ecalMultiFitUncalibRecHit.clone()\n")
+        if( is50ns ):
+            outputfile.write("process.ecalMultiFitUncalibRecHit.activeBXs = cms.vint32(-4,-2,0,2,4) #Are 10 (-5-5). For 50ns is (-4,-2,0,2,4) #Is .algoPSet. in latest release\n")
+        else:
+            outputfile.write("process.ecalMultiFitUncalibRecHit.activeBXs = cms.vint32(-5,-4,-3,-2,-1,0,1,2,3,4) #Are 10 (-5-5). For 50ns is (-4,-2,0,2,4) #Is .algoPSet. in latest release\n")
+        outputfile.write("process.ecalMultiFitUncalibRecHit.useLumiInfoRunHeader = cms.bool( False )\n")
+        outputfile.write("process.ecalMultiFitUncalibRecHit.EBdigiCollection = cms." + EBdigi + "\n")
+        outputfile.write("process.ecalMultiFitUncalibRecHit.EEdigiCollection = cms." + EEdigi + "\n")
+        outputfile.write("#UNCALIB to CALIB\n")
+        outputfile.write("#https://github.com/cms-sw/cmssw/blob/CMSSW_7_4_X/RecoLocalCalo/EcalRecProducers/python/ecalLocalRecoSequence_cff.py\n")
+        outputfile.write("from RecoLocalCalo.EcalRecProducers.ecalRecHit_cfi import *\n")
+        outputfile.write("process.ecalDetIdToBeRecovered =  RecoLocalCalo.EcalRecProducers.ecalDetIdToBeRecovered_cfi.ecalDetIdToBeRecovered.clone()\n")
+        outputfile.write("process.ecalRecHit.killDeadChannels = cms.bool( False )\n")
+        outputfile.write("process.ecalRecHit.recoverEBVFE = cms.bool( False )\n")
+        outputfile.write("process.ecalRecHit.recoverEEVFE = cms.bool( False )\n")
+        outputfile.write("process.ecalRecHit.recoverEBFE = cms.bool( False )\n")
+        outputfile.write("process.ecalRecHit.recoverEEFE = cms.bool( False )\n")
+        outputfile.write("process.ecalRecHit.recoverEEIsolatedChannels = cms.bool( False )\n")
+        outputfile.write("process.ecalRecHit.recoverEBIsolatedChannels = cms.bool( False )\n")
+        outputfile.write("process.ecalLocalRecoSequence = cms.Sequence(ecalRecHit)\n")
 
     if (overWriteGlobalTag):
         if not( alphaTagRecord=='' and alphaTag=='' and alphaDB=='' ):        
@@ -196,19 +225,6 @@ def printFillCfg2( outputfile, pwd , iteration, outputDir, ijob ):
         outputfile.write("process.analyzerFillEpsilon.L1TriggerInfo = cms.untracked.bool(True)\n")
     if not( L1Seed=='' ):
         outputfile.write("process.analyzerFillEpsilon.L1_Bit_Sele = cms.untracked.string('" + L1Seed + "')\n")
-    #if not( L1Seed=='' ):       
-    #   outputfile.write("process.L1SeedSele = cms.EDFilter( 'HLTLevel1GTSeed',\n")
-    #   outputfile.write("    L1SeedsLogicalExpression = cms.string( '" + L1Seed + "' ), #You can also request a OR ('L1_SingleJet16 OR L1_SingleJet36')\n")
-    #   outputfile.write("    saveTags = cms.bool( True ),\n")
-    #   outputfile.write("    L1MuonCollectionTag = cms.InputTag( 'hltL1extraParticles' ),\n")
-    #   outputfile.write("    L1UseL1TriggerObjectMaps = cms.bool( True ),\n")
-    #   outputfile.write("    L1UseAliasesForSeeding = cms.bool( True ),\n")
-    #   outputfile.write("    L1GtReadoutRecordTag = cms.InputTag( 'hltGtDigis' ),\n")
-    #   outputfile.write("    L1CollectionsTag = cms.InputTag( 'hltL1extraParticles' ),\n")
-    #   outputfile.write("    L1NrBxInEvent = cms.int32( 3 ),\n")
-    #   outputfile.write("    L1GtObjectMapTag = cms.InputTag( 'hltL1GtObjectMap' ),\n")
-    #   outputfile.write("    L1TechTriggerSeeding = cms.bool( False )\n")
-    #   outputfile.write(")\n")
     outputfile.write("process.p = cms.Path()\n")
     outputfile.write("if useHLTFilter:\n")
     outputfile.write("    process.p *= process.AlcaP0Filter\n")
@@ -218,10 +234,10 @@ def printFillCfg2( outputfile, pwd , iteration, outputDir, ijob ):
     outputfile.write("    print 'INTERCALIBRATION '+str(process.ecalPi0ReCorrected.doIntercalib)\n")
     outputfile.write("    print 'LASER '+str(process.ecalPi0ReCorrected.doLaserCorrections)\n")
     outputfile.write("    process.p *= process.ecalPi0ReCorrected\n")
-    #if not( L1Seed=='' ):
-    #   outputfile.write("process.p *= process.L1SeedSele\n")
+    if (FROMDIGI):
+        outputfile.write("process.p *= process.ecalMultiFitUncalibRecHit\n")
+        outputfile.write("process.p *= process.ecalLocalRecoSequence\n")
     outputfile.write("process.p *= process.analyzerFillEpsilon\n")
-
 
 def printFitCfg( outputfile, iteration, outputDir, nIn, nFin, EBorEE, nFit ):
     outputfile.write("import FWCore.ParameterSet.Config as cms\n")

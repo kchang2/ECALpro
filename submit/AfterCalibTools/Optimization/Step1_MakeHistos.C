@@ -30,7 +30,7 @@
 using namespace std;
 
 //.x Step1_MakeHistos.C+("ALL_MINBIAS_UNCAL_L1_NOL1FILTER", true, true)
-void Step1_MakeHistos( TString folder = "ALL_MINBIAS_UNCAL_L1_NOL1FILTER_40PU50ns_OnTopJosh_noCC", bool isEB=false, bool isPi0=true ){
+void Step1_MakeHistos( TString folder = "ALL_MINBIAS_UNCAL_L1_NOL1FILTER_20bx25_7e33_noCC", bool isEB=false, bool isPi0=true ){
 
   //Check options
   if(isEB)  cout<<"Running on Barrel"<<endl;
@@ -63,8 +63,39 @@ void Step1_MakeHistos( TString folder = "ALL_MINBIAS_UNCAL_L1_NOL1FILTER_40PU50n
   TFile* OutFile = new TFile( (folder + nameOutput).Data(),"RECREATE");
   //Input File
   TChain *tree = new TChain("Tree_Optim","Tree_Optim");
-  //tree->Add("root://eoscms//eos/cms/store/group/dpg_ecal/alca_ecalcalib/lpernie/ALL_MINBIAS_UNCAL_L1_NOL1FILTER_40PU25ns_EB_eta/iter_0/EcalNtp_0.root");
-  tree->Add("root://eoscms//eos/cms/store/group/dpg_ecal/alca_ecalcalib/lpernie/ALL_MINBIAS_UNCAL_optimized_40PU50ns_EE_pi0/iter_0/epsilonPlots.root");
+  tree->Add("root://eoscms//eos/cms/store/group/dpg_ecal/alca_ecalcalib/lpernie/ALL_MINBIAS_UNCAL_L1_NOL1FILTER_40PU25ns_EE_pi0/iter_0/epsilonPlots_0.root");
+  tree->Add("root://eoscms//eos/cms/store/group/dpg_ecal/alca_ecalcalib/lpernie/ALL_MINBIAS_UNCAL_L1_NOL1FILTER_40PU25ns_EE_pi0/iter_0/epsilonPlots_1.root");
+  tree->Add("root://eoscms//eos/cms/store/group/dpg_ecal/alca_ecalcalib/lpernie/ALL_MINBIAS_UNCAL_L1_NOL1FILTER_40PU25ns_EE_pi0/iter_0/epsilonPlots_2.root");
+  //tree->Add("root://eoscms//eos/cms/store/group/dpg_ecal/alca_ecalcalib/lpernie/ALL_MINBIAS_UNCAL_optimized_20bx25_7e33_EB_pi0/iter_0/EcalNtp_0.root");
+  //tree->Add("root://eoscms//eos/cms/store/group/dpg_ecal/alca_ecalcalib/lpernie/ALL_MINBIAS_UNCAL_optimized_20bx25_7e33_EB_pi0/iter_0/EcalNtp_1.root");
+  //tree->Add("root://eoscms//eos/cms/store/group/dpg_ecal/alca_ecalcalib/lpernie/ALL_MINBIAS_UNCAL_optimized_20bx25_7e33_EB_pi0/iter_0/EcalNtp_10.root");
+  //tree->Add("root://eoscms//eos/cms/store/group/dpg_ecal/alca_ecalcalib/lpernie/ALL_MINBIAS_UNCAL_optimized_20bx25_7e33_EB_pi0/iter_0/EcalNtp_100.root");
+  //tree->Add("root://eoscms//eos/cms/store/group/dpg_ecal/alca_ecalcalib/lpernie/ALL_MINBIAS_UNCAL_optimized_20bx25_7e33_EB_pi0/iter_0/EcalNtp_101.root");
+  //tree->Add("root://eoscms//eos/cms/store/group/dpg_ecal/alca_ecalcalib/lpernie/ALL_MINBIAS_UNCAL_optimized_20bx25_7e33_EB_pi0/iter_0/EcalNtp_102.root");
+  //tree->Add("root://eoscms//eos/cms/store/group/dpg_ecal/alca_ecalcalib/lpernie/ALL_MINBIAS_UNCAL_optimized_20bx25_7e33_EB_pi0/iter_0/EcalNtp_103.root");
+  //tree->Add("root://eoscms//eos/cms/store/group/dpg_ecal/alca_ecalcalib/lpernie/ALL_MINBIAS_UNCAL_optimized_20bx25_7e33_EB_pi0/iter_0/EcalNtp_104.root");
+  //tree->Add("root://eoscms//eos/cms/store/group/dpg_ecal/alca_ecalcalib/lpernie/ALL_MINBIAS_UNCAL_optimized_20bx25_7e33_EB_pi0/iter_0/EcalNtp_105.root");
+  //tree->Add("root://eoscms//eos/cms/store/group/dpg_ecal/alca_ecalcalib/lpernie/ALL_MINBIAS_UNCAL_optimized_20bx25_7e33_EB_pi0/iter_0/EcalNtp_106.root");
+  //tree->Add("root://eoscms//eos/cms/store/group/dpg_ecal/alca_ecalcalib/lpernie/ALL_MINBIAS_UNCAL_optimized_20bx25_7e33_EB_pi0/iter_0/EcalNtp_107.root");
+  //tree->Add("root://eoscms//eos/cms/store/group/dpg_ecal/alca_ecalcalib/lpernie/ALL_MINBIAS_UNCAL_optimized_20bx25_7e33_EB_pi0/iter_0/EcalNtp_108.root");
+  //tree->Add("root://eoscms//eos/cms/store/group/dpg_ecal/alca_ecalcalib/lpernie/ALL_MINBIAS_UNCAL_optimized_20bx25_7e33_EB_pi0/iter_0/EcalNtp_109.root");
+  //tree->Add("root://eoscms//eos/cms/store/group/dpg_ecal/alca_ecalcalib/lpernie/ALL_MINBIAS_UNCAL_optimized_20bx25_7e33_EB_pi0/iter_0/EcalNtp_11.root");
+  //tree->Add("root://eoscms//eos/cms/store/group/dpg_ecal/alca_ecalcalib/lpernie/ALL_MINBIAS_UNCAL_optimized_20bx25_7e33_EB_pi0/iter_0/EcalNtp_110.root");
+  //tree->Add("root://eoscms//eos/cms/store/group/dpg_ecal/alca_ecalcalib/lpernie/ALL_MINBIAS_UNCAL_optimized_20bx25_7e33_EB_pi0/iter_0/EcalNtp_12.root");
+  //tree->Add("root://eoscms//eos/cms/store/group/dpg_ecal/alca_ecalcalib/lpernie/ALL_MINBIAS_UNCAL_optimized_20bx25_7e33_EB_pi0/iter_0/EcalNtp_13.root");
+  //tree->Add("root://eoscms//eos/cms/store/group/dpg_ecal/alca_ecalcalib/lpernie/ALL_MINBIAS_UNCAL_optimized_20bx25_7e33_EB_pi0/iter_0/EcalNtp_14.root");
+  //tree->Add("root://eoscms//eos/cms/store/group/dpg_ecal/alca_ecalcalib/lpernie/ALL_MINBIAS_UNCAL_optimized_20bx25_7e33_EB_pi0/iter_0/EcalNtp_15.root");
+  //tree->Add("root://eoscms//eos/cms/store/group/dpg_ecal/alca_ecalcalib/lpernie/ALL_MINBIAS_UNCAL_optimized_20bx25_7e33_EB_pi0/iter_0/EcalNtp_16.root");
+  //tree->Add("root://eoscms//eos/cms/store/group/dpg_ecal/alca_ecalcalib/lpernie/ALL_MINBIAS_UNCAL_optimized_20bx25_7e33_EB_pi0/iter_0/EcalNtp_17.root");
+  //tree->Add("root://eoscms//eos/cms/store/group/dpg_ecal/alca_ecalcalib/lpernie/ALL_MINBIAS_UNCAL_optimized_20bx25_7e33_EB_pi0/iter_0/EcalNtp_18.root");
+  //tree->Add("root://eoscms//eos/cms/store/group/dpg_ecal/alca_ecalcalib/lpernie/ALL_MINBIAS_UNCAL_optimized_20bx25_7e33_EB_pi0/iter_0/EcalNtp_19.root");
+  //tree->Add("root://eoscms//eos/cms/store/group/dpg_ecal/alca_ecalcalib/lpernie/ALL_MINBIAS_UNCAL_optimized_20bx25_7e33_EB_pi0/iter_0/EcalNtp_2.root");
+  //tree->Add("root://eoscms//eos/cms/store/group/dpg_ecal/alca_ecalcalib/lpernie/ALL_MINBIAS_UNCAL_optimized_20bx25_7e33_EB_pi0/iter_0/EcalNtp_20.root");
+  //tree->Add("root://eoscms//eos/cms/store/group/dpg_ecal/alca_ecalcalib/lpernie/ALL_MINBIAS_UNCAL_optimized_20bx25_7e33_EB_pi0/iter_0/EcalNtp_21.root");
+  //tree->Add("root://eoscms//eos/cms/store/group/dpg_ecal/alca_ecalcalib/lpernie/ALL_MINBIAS_UNCAL_optimized_20bx25_7e33_EB_pi0/iter_0/EcalNtp_22.root");
+  //tree->Add("root://eoscms//eos/cms/store/group/dpg_ecal/alca_ecalcalib/lpernie/ALL_MINBIAS_UNCAL_optimized_20bx25_7e33_EB_pi0/iter_0/EcalNtp_23.root");
+  //tree->Add("root://eoscms//eos/cms/store/group/dpg_ecal/alca_ecalcalib/lpernie/ALL_MINBIAS_UNCAL_optimized_20bx25_7e33_EB_pi0/iter_0/EcalNtp_24.root");
+  //tree->Add("root://eoscms//eos/cms/store/group/dpg_ecal/alca_ecalcalib/lpernie/ALL_MINBIAS_UNCAL_optimized_20bx25_7e33_EB_pi0/iter_0/EcalNtp_25.root");
   Int_t event = tree->GetEntries();
   cout << "Number of events in tree: " << event << endl;
   //Check TTree
