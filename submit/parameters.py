@@ -8,6 +8,12 @@ CalibType        = 'xtal'              # Calibrating single xtals. I never try b
 
 #Are Pi0
 Are_pi0          = True                # True = using Pi0, False = using Eta
+#Fold per Eta Ring
+EtaRingCalibEB     = True
+SMCalibEB          = False
+EtaRingCalibEE     = True
+SMCalibEE          = False
+CalibMapEtaRing  = "CalibCode/FillEpsilonPlot/data/calibMap.root"
 #PATH
 #eosPath = '/store/caf/user/lpernie'
 eosPath = '/store/group/dpg_ecal/alca_ecalcalib/lpernie'
@@ -29,17 +35,17 @@ if(isCRAB):
 isMC = True
 MakeNtuple4optimization = False
 #InputList and Folder name
-inputlist_n      = 'ALL_MINBIAS_NOUNCAL_L1_NOL1FILTER_20bx25_7e33.list' # list of the input files
-dirname          = 'ALL_MINBIAS_UNCAL_optimized_20bx25_7e33_prova'
+inputlist_n      = 'ALL_Neutrino_Pt2to20_AVE40BX25.list' # list of the input files
+dirname          = 'ALL_Neutrino_Pt2to20_AVE40BX25_FoldEtaRing_02'
 Silent           = False                 # True->Fill modules is silent; False->Fill modules has a standard output
 #TAG, QUEUE and ITERS
 NameTag          = ''                   # Tag to the names to avoid overlap
-queueForDaemon   = 'cmscaf1nw'          # Option suggested: 2nw/2nd, 1nw/1nd, cmscaf1nw/cmscaf1nd... even cmscaf2nw
-queue            = 'cmscaf1nd'
+queueForDaemon   = '2nw'          # Option suggested: 2nw/2nd, 1nw/1nd, cmscaf1nw/cmscaf1nd... even cmscaf2nw
+queue            = '2nd'
 nIterations = 8
 #N files
-ijobmax          = 3                     # 5 number of files per job
-nHadd            = 30                    # 35 number of files per hadd
+ijobmax          = 6                    # 5 number of files per job
+nHadd            = 35                    # 35 number of files per hadd
 nFit             = 2000                  # number of fits done in parallel
 Barrel_or_Endcap = 'ALL_PLEASE'         # Option: 'ONLY_BARREL','ONLY_ENDCAP','ALL_PLEASE'
 #Remove Xtral Dead
@@ -65,37 +71,37 @@ EE_Seed_E    = '1.5' #1.5 for 40PU25
 CutOnHLTIso = "False"
 if(Are_pi0):
    #inner barrel
-   Pi0PtCutEB_low = '2.1'
-   gPtCutEB_low = '0.8'
-   Pi0IsoCutEB_low = '0.'
+   Pi0PtCutEB_low = '1.8'
+   gPtCutEB_low = '0.6'
+   Pi0IsoCutEB_low = '0.2'
    Pi0HLTIsoCutEB_low = "999"
-   nXtal_1_EB_low = '6'
-   nXtal_2_EB_low = '4'
-   S4S9_EB_low = '0.7'
+   nXtal_1_EB_low = '4'
+   nXtal_2_EB_low = '5'
+   S4S9_EB_low = '0.6'
    #outer barrel
-   Pi0PtCutEB_high = '2.1'
-   gPtCutEB_high = '0.8'
-   Pi0IsoCutEB_high = '0.8'
+   Pi0PtCutEB_high = '2.6'
+   gPtCutEB_high = '0.6'
+   Pi0IsoCutEB_high = '0.05'
    Pi0HLTIsoCutEB_high = "999"
-   nXtal_1_EB_high = '6'
-   nXtal_2_EB_high = '4'
-   S4S9_EB_high = '0.7'
+   nXtal_1_EB_high = '4'
+   nXtal_2_EB_high = '5'
+   S4S9_EB_high = '0.75'
    #low eta EE
-   Pi0PtCutEE_low = '2.1'
-   gPtCutEE_low = '0.8'
-   Pi0IsoCutEE_low = '0.25'
+   Pi0PtCutEE_low = '3.6'
+   gPtCutEE_low = '1.'
+   Pi0IsoCutEE_low = '0.3'
    Pi0HLTIsoCutEE_low = "999"
-   nXtal_1_EE_low = '6'
-   nXtal_2_EE_low = '4'
-   S4S9_EE_low = '0.85'   
+   nXtal_1_EE_low = '4'
+   nXtal_2_EE_low = '5'
+   S4S9_EE_low = '0.8'   
    #high eta EE
-   Pi0PtCutEE_high = '2.1'
-   gPtCutEE_high = '0.8'
-   Pi0IsoCutEE_high = '0.25'
+   Pi0PtCutEE_high = '3.6'
+   gPtCutEE_high = '1.'
+   Pi0IsoCutEE_high = '0.3'
    Pi0HLTIsoCutEE_high = "999"
-   nXtal_1_EE_high = '6'
-   nXtal_2_EE_high = '4'
-   S4S9_EE_high = '0.85'
+   nXtal_1_EE_high = '4'
+   nXtal_2_EE_high = '5'
+   S4S9_EE_high = '0.8'
    if MakeNtuple4optimization:
       #inner barrel
       Pi0PtCutEB_low = '1'
@@ -132,21 +138,21 @@ if(Are_pi0):
 #ETA
 else:
    #inner barrel
-   Pi0PtCutEB_low = '3.2'
-   gPtCutEB_low = '1.4'
+   Pi0PtCutEB_low = '3.0'
+   gPtCutEB_low = '2.'
    Pi0IsoCutEB_low = '0.'
    Pi0HLTIsoCutEB_low = "999"
-   nXtal_1_EB_low = '6'
+   nXtal_1_EB_low = '4'
    nXtal_2_EB_low = '4'
-   S4S9_EB_low = '0.8'
+   S4S9_EB_low = '0.9'
    #outer barrel
-   Pi0PtCutEB_high = '3.2'
-   gPtCutEB_high = '1.4'
+   Pi0PtCutEB_high = '3.0'
+   gPtCutEB_high = '2.'
    Pi0IsoCutEB_high = '0.'
    Pi0HLTIsoCutEB_high = "999"
-   nXtal_1_EB_high = '6'
+   nXtal_1_EB_high = '4'
    nXtal_2_EB_high = '4'
-   S4S9_EB_high = '0.8'
+   S4S9_EB_high = '0.9'
    #low eta EE
    Pi0PtCutEE_low = '3.2'
    gPtCutEE_low = '1.4'

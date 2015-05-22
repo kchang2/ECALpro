@@ -54,16 +54,24 @@ using namespace RooFit;
 
 //5_3_6:  gROOT->ProcessLine(".include /afs/cern.ch/cms/slc5_amd64_gcc462/lcg/roofit/5.32.03-cms9/include/")
 //7_1_0:  gROOT->ProcessLine(".include /afs/cern.ch/cms/slc6_amd64_gcc481/lcg/roofit/5.34.22-cms2/include/")
-//Usage: .x Total_fit.C+("2012C_epsilonPlots.root", "allEpsilon_EB", true, true )
-void Total_fit( TString File, TString Hname, bool isEB, bool Are_pi0_=true ){
+//Usage: .x Total_fit.C+("root://eoscms//eos/cms/store/group/dpg_ecal/alca_ecalcalib/lpernie/ALL_Neutrino_Pt2to20_AVE40BX25_FoldEtaRing_eta01/iter_0/epsilonPlots.root", true, true, false )
+void Total_fit( TString File, TString Hname, bool RunOnAll, bool isEB=true, bool Are_pi0_=true ){
 
-    TCanvas* myc1 = new TCanvas("myc1", "CMS", 600, 600);
-    //Files
-    cout<<"Opening: "<<File.Data()<<endl;
-    TFile* fin = TFile::Open(File.Data());
-    //Histos
-    TH1F *h     = (TH1F*) fin->Get( Hname.Data() );
-    TString outName = "plots/FIT" + Hname + ".png";
+  TCanvas* myc1 = new TCanvas("myc1", "CMS", 600, 600);
+  //Files
+  cout<<"Opening: "<<File.Data()<<endl;
+  TFile* fin = TFile::Open(File.Data());
+  //Histos
+  int MaxH = 1;
+  if( RunOnAll ) MaxH = isEB ? 61200 : 14648;
+  for(int i=0; i<MaxH; i++){
+    std::stringstream ind; ind << (int) i;
+    TString EBEE   = isEB ? "EB" : "EE";
+    TString BarEnd = isEB ? "Barrel" : "Endcap";
+    TString name  = BarEnd + "/epsilon_" + EBEE + "_iR_" + TString(ind.str());
+    if( ! RunOnAll ) name = "TESTFIT_pi0EE/" + Hname;
+    TH1F *h     = (TH1F*) fin->Get( name.Data() );
+    TString outName = "TESTFIT_pi0EE/" + EBEE + "_iR_" + TString(ind.str()) + ".png";
 
     //Fit Method
     int ngaus=1; //1: simple Gaussian, 2: two Gaussian
@@ -76,13 +84,13 @@ void Total_fit( TString File, TString Hname, bool isEB, bool Are_pi0_=true ){
 
 
     if(!isEB)  {
-	  mean.setRange( Are_pi0_? 0.10:0.45, Are_pi0_? 0.140:0.62); // 0.200
-	  mean.setVal(Are_pi0_? 0.120:0.55);
-	  sigma.setRange(0.005, 0.060);
+	mean.setRange( Are_pi0_? 0.10:0.45, Are_pi0_? 0.140:0.62); // 0.200
+	mean.setVal(Are_pi0_? 0.120:0.55);
+	sigma.setRange(0.005, 0.060);
     }
     if(isEB){
-	  mean.setRange(Are_pi0_? 0.105:0.47, Are_pi0_? 0.155:0.62);
-	  sigma.setRange(0.003, 0.030);
+	mean.setRange(Are_pi0_? 0.105:0.47, Are_pi0_? 0.155:0.62);
+	sigma.setRange(0.003, 0.030);
     }
 
     RooRealVar Nsig("Nsig","#pi^{0} yield",1000.,0.,1.e7);
@@ -114,11 +122,11 @@ void Total_fit( TString File, TString Hname, bool isEB, bool Are_pi0_=true ){
     RooRealVar cb6("cb6","cb6", 0.3, -1.,1.);
     RooArgList cbpars(cb0,cb1,cb2);
     if(Are_pi0_) cbpars.add( cb3);
-//    if(isEB){
-//	  cb3.setRange(-1,1.);
-//	  cb4.setRange(-0.3,0.3);
-//	  cbpars.add( cb4 );
-//    }
+    //    if(isEB){
+    //	  cb3.setRange(-1,1.);
+    //	  cb4.setRange(-0.3,0.3);
+    //	  cbpars.add( cb4 );
+    //    }
     RooChebychev bkg("bkg","bkg model", x, cbpars );
     RooRealVar Nbkg("Nbkg","background yield",1.e3,0.,1.e8);
     Nbkg.setVal( h->GetSum()*0.8 );
@@ -176,4 +184,5 @@ void Total_fit( TString File, TString Hname, bool isEB, bool Are_pi0_=true ){
     cout<<"Histo Entries: "<<h->GetEntries()<<" and integral: "<<h->Integral()<<endl;
     cout<<"integralSig->getVal()*Nsig.getVal(): "<<integralSig->getVal()*Nsig.getVal()<<" : "<<integralSig->getVal()<<" * "<<Nsig.getVal()<<endl;;
     cout<<"integralBkg->getVal()*Nbkg.getVal(): "<<integralBkg->getVal()*Nbkg.getVal()<<" : "<<integralBkg->getVal()<<" * "<<Nbkg.getVal()<<endl;;
+  }
 }

@@ -153,6 +153,16 @@ def printFillCfg2( outputfile, pwd , iteration, outputDir, ijob ):
     outputfile.write("process.analyzerFillEpsilon.HLTResults                  = cms.untracked.bool(" + HLTResults + ")\n")
     outputfile.write("process.analyzerFillEpsilon.RemoveDead_Flag             = cms.untracked.bool(" + RemoveDead_Flag + ")\n")
     outputfile.write("process.analyzerFillEpsilon.RemoveDead_Map              = cms.untracked.string('" + RemoveDead_Map + "')\n")
+    if(EtaRingCalibEB):
+      outputfile.write("process.analyzerFillEpsilon.EtaRingCalibEB    = cms.untracked.bool(True)\n")
+    if(EtaRingCalibEE):
+      outputfile.write("process.analyzerFillEpsilon.EtaRingCalibEE    = cms.untracked.bool(True)\n")
+    if(SMCalibEB):
+      outputfile.write("process.analyzerFillEpsilon.SMCalibEB    = cms.untracked.bool(True)\n")
+    if(SMCalibEE):
+      outputfile.write("process.analyzerFillEpsilon.SMCalibEE    = cms.untracked.bool(True)\n")
+    if(EtaRingCalibEB or SMCalibEB or EtaRingCalibEE or SMCalibEE):
+      outputfile.write("process.analyzerFillEpsilon.CalibMapEtaRing = cms.untracked.string('" + CalibMapEtaRing + "')\n")
     if(MC_Asssoc):
         outputfile.write("process.analyzerFillEpsilon.GenPartCollectionTag = cms.untracked." + genPartInputTag + "\n")
         outputfile.write("process.analyzerFillEpsilon.MC_Asssoc            = cms.untracked.bool(True)\n")

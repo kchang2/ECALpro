@@ -126,6 +126,11 @@ class FillEpsilonPlot : public edm::EDAnalyzer {
       std::string MVAEBContainmentCorrections_eta01_;
       std::string MVAEBContainmentCorrections_eta02_;
       std::string Endc_x_y_;
+      bool        EtaRingCalibEB_;
+      bool        SMCalibEB_;
+      bool        EtaRingCalibEE_;
+      bool        SMCalibEE_;
+      std::string CalibMapEtaRing_;
       std::string ebPHIContainmentCorrections_;
       std::string eeContainmentCorrections_;
       std::string Barrel_orEndcap_;
@@ -218,6 +223,7 @@ class FillEpsilonPlot : public edm::EDAnalyzer {
       TH1F *allEpsilon_EB;
       TH2F *entries_EEp;
       TH2F *entries_EEm;
+      TH2F *entries_EB;
       TH2F *pi0MassVsIetaEB;
       TH2F *pi0MassVsETEB;
       bool useMassInsteadOfEpsilon_;
@@ -278,6 +284,12 @@ class FillEpsilonPlot : public edm::EDAnalyzer {
       Float_t Op_Es_e2_2[NPI0MAX];
       Float_t Op_S4S9_1[NPI0MAX];
       Float_t Op_S4S9_2[NPI0MAX];
+      Float_t Op_Eta_1[NPI0MAX];
+      Float_t Op_Eta_2[NPI0MAX];
+      Float_t Op_Phi_1[NPI0MAX];
+      Float_t Op_Phi_2[NPI0MAX];
+      Float_t Op_Time_1[NPI0MAX];
+      Float_t Op_Time_2[NPI0MAX];
       Float_t Op_ptG1_nocor[NPI0MAX];
       Float_t Op_ptG2_nocor[NPI0MAX];
       Float_t Op_ptPi0_nocor[NPI0MAX];
@@ -306,7 +318,17 @@ class FillEpsilonPlot : public edm::EDAnalyzer {
       Int_t   iEta1_mva, iPhi1_mva, iEta2_mva, iPhi2_mva, iSM1_mva, iSM2_mva;
 #endif
       vector<iXiYtoRing> VectRing;
+      std::map<int,vector<int>> ListEtaFix_xtalEB;
+      std::map<int,vector<int>> ListSMFix_xtalEB;
+      std::map<int,vector<int>> ListEtaFix_xtalEEm;
+      std::map<int,vector<int>> ListEtaFix_xtalEEp;
+      std::map<int,vector<int>> ListQuadFix_xtalEEm;
+      std::map<int,vector<int>> ListQuadFix_xtalEEp;
+      std::map<int,vector<int>> List_IR_EtaPhi;
+      std::map<int,vector<int>> List_IR_XYZ;
       vector<float> vs4s9EE;
+      vector<float> vSeedTime;
+      vector<float> vSeedTimeEE;
 #ifdef MVA_REGRESSIO_EE
       vector<float> vs1s9EE;
       vector<float> vs2s9EE;

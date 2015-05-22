@@ -61,7 +61,7 @@ struct FFitResult {
 FFitResult FitFit(TH1D* h, double xmin, double xmax, int events, int Name, FILE *file_txt, float eff , bool Are_pi0_, int LH, bool isEB);
 
 //.x Step2_FitHisto.C("ALL_MINBIAS_UNCAL_L1_NOL1FILTER", "Fstep1_EB_eta.root", true, false)
-void Step2_FitHisto(TString folder="ALL_MINBIAS_UNCAL_L1_NOL1FILTER_20bx25_7e33_noCC", TString file="Fstep1_EB_pi0.root", bool isEB=true, bool Are_pi0_=true){
+void Step2_FitHisto(TString folder="ALL_MINBIAS_UNCAL_L1_NOL1FILTER_20bx25_7e33_noCC", TString file="Fstep1_EE_pi0.root", bool isEB=false, bool Are_pi0_=true){
 
   //Open Input File
   TFile *f1 = new TFile( (folder + "/" + file).Data(),"r" );

@@ -137,7 +137,7 @@ void FitEpsilonPlot::loadEpsilonPlot(char *filename)
     if(!inputEpsilonFile_) 
 	  throw cms::Exception("loadEpsilonPlot") << "Cannot open file " << string(filename) << "\n"; 
     if( EEoEB_ == "Barrel" && (Barrel_orEndcap_=="ONLY_BARREL" || Barrel_orEndcap_=="ALL_PLEASE" ) ){
-	  for(int iR=inRangeFit_; iR < finRangeFit_ && iR < regionalCalibration_->getCalibMap()->getNRegionsEB(); iR++)
+	  for(int iR=inRangeFit_; iR <= finRangeFit_ && iR < regionalCalibration_->getCalibMap()->getNRegionsEB(); iR++)
 	  {
 		sprintf(line,"Barrel/epsilon_EB_iR_%d",iR);
 		epsilon_EB_h[iR] = (TH1F*)inputEpsilonFile_->Get(line);
@@ -149,7 +149,7 @@ void FitEpsilonPlot::loadEpsilonPlot(char *filename)
 	  }
     }
     else if( EEoEB_ == "Endcap" && (Barrel_orEndcap_=="ONLY_ENDCAP" || Barrel_orEndcap_=="ALL_PLEASE" ) ){
-	  for(int jR=inRangeFit_; jR < finRangeFit_ && jR<EEDetId::kSizeForDenseIndexing; jR++)
+	  for(int jR=inRangeFit_; jR <= finRangeFit_ && jR<EEDetId::kSizeForDenseIndexing; jR++)
 	  {
 		sprintf(line,"Endcap/epsilon_EE_iR_%d",jR);
 		epsilon_EE_h[jR] = (TH1F*)inputEpsilonFile_->Get(line);
@@ -417,7 +417,7 @@ FitEpsilonPlot::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
 
     /// compute average weight, eps, and update calib constant
     if( (EEoEB_ == "Barrel") && (Barrel_orEndcap_=="ONLY_BARREL" || Barrel_orEndcap_=="ALL_PLEASE" ) ){
-	  for(uint32_t j= (uint32_t)inRangeFit_; j < (uint32_t)finRangeFit_ && j < (uint32_t)regionalCalibration_->getCalibMap()->getNRegionsEB(); ++j)  
+	  for(uint32_t j= (uint32_t)inRangeFit_; j <= (uint32_t)finRangeFit_ && j < (uint32_t)regionalCalibration_->getCalibMap()->getNRegionsEB(); ++j)  
 	  {
 		cout<<"FIT_EPSILON: Fitting EB Cristal--> "<<j<<endl;
 
@@ -473,9 +473,10 @@ FitEpsilonPlot::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
 			  Pi0FitResult fitres = FitMassPeakRooFit( epsilon_EB_h[j], Are_pi0_? 0.08:0.4, Are_pi0_? 0.21:0.65, j, 1, Pi0EB, 0, is_2011_); //0.05-0.3
 			  RooRealVar* mean_fitresult = (RooRealVar*)(((fitres.res)->floatParsFinal()).find("mean"));
 			  mean = mean_fitresult->getVal();
-
+cout<<"MEAN: "<<mean<<endl;
 			  float r2 = mean/(Are_pi0_? PI0MASS:ETAMASS);
 			  r2 = r2*r2;
+cout<<"test: "<<fitres.SoB<<">(is_2011_ ? 0.04:0.1) "<<(fitres.chi2/fitres.dof)<<" < 0.049 "<<fabs(mean-0.15)<<" >0.0000001) "<<endl;
 			  if( fitres.SoB>(is_2011_ ? 0.04:0.1) && (fitres.chi2/fitres.dof)< 0.049 && fabs(mean-0.15)>0.0000001) mean = 0.5 * ( r2 - 1. );
 			  else                                                                                                  mean = 0.;
 		    }
@@ -494,7 +495,7 @@ FitEpsilonPlot::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
 
     /// loop over EE crystals
     if( (EEoEB_ == "Endcap") && (Barrel_orEndcap_=="ONLY_ENDCAP" || Barrel_orEndcap_=="ALL_PLEASE" ) ){
-	  for(int jR = inRangeFit_; jR <finRangeFit_ && jR < regionalCalibration_->getCalibMap()->getNRegionsEE(); jR++)
+	  for(int jR = inRangeFit_; jR <=finRangeFit_ && jR < regionalCalibration_->getCalibMap()->getNRegionsEE(); jR++)
 	  {
 		cout << "FIT_EPSILON: Fitting EE Cristal--> " << jR << endl;
 		if(!(jR%1000))
@@ -547,7 +548,6 @@ FitEpsilonPlot::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
 			  Pi0FitResult fitres = FitMassPeakRooFit( epsilon_EE_h[jR], Are_pi0_? 0.08:0.4, Are_pi0_? 0.25:0.65, jR, 1, Pi0EE, 0, is_2011_);//0.05-0.3
 			  RooRealVar* mean_fitresult = (RooRealVar*)(((fitres.res)->floatParsFinal()).find("mean"));
 			  mean = mean_fitresult->getVal();
-
 			  float r2 = mean/(Are_pi0_? PI0MASS:ETAMASS);
 			  r2 = r2*r2;
 			  if( (fitres.chi2/fitres.dof)<0.3 && fitres.SoB>(is_2011_? 0.07:0.35) && fabs(mean-0.14)>0.0000001 ) mean = 0.5 * ( r2 - 1. );

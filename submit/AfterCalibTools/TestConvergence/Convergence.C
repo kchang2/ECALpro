@@ -43,6 +43,10 @@ using std::string;
 using std::map;
 using std::pair;
 using std::stringstream;
+static const int MAX_IETA = 85;
+static const int MAX_IPHI = 360;
+static const int MIN_IETA = 1;
+static const int MIN_IPHI = 1;
 
 //before: gROOT->ProcessLine(".include /afs/cern.ch/cms/slc5_ia32_gcc434/lcg/roofit/5.26.00-cms5/include")
 //5_3_6:  gROOT->ProcessLine(".include /afs/cern.ch/cms/slc5_amd64_gcc462/lcg/roofit/5.32.03-cms9/include/")
@@ -66,7 +70,7 @@ void Convergence( string Path_0, string Path, int nIter, string Tag, int nJump=1
 	  iter = new float[nIter];
 
 	  float hmean(0.), hrms(0.01), sigma_plot(0);
-	  if(isEB==1){ hmean=0.02; hrms=0.015; }
+	  if(isEB==1){ hmean=0.09; hrms=0.03; } //rms 0.015
 
 	  for(int i=0; i<nIter; i++){
 
@@ -121,7 +125,7 @@ void Convergence( string Path_0, string Path, int nIter, string Tag, int nJump=1
 		    Tree1->GetEntry(iEntry);
 		    if( coeff1!=1. && coeff!=1. && coeff1!=coeff && coeff!=0 && coeff1!=0 && Ndof>10 && Ndof1>10){
 			  if(isEB==0 )                              h1->Fill((coeff1-coeff));
-			  if(isEB==1 && coeff>0.97 && coeff1>0.97 ) h1->Fill((coeff1-coeff));
+			  if(isEB==1 /*&& coeff>0.97 && coeff1>0.97*/ ) h1->Fill((coeff1-coeff));
 		    }
 
 		    if(i==nIter-1){
@@ -138,6 +142,7 @@ void Convergence( string Path_0, string Path, int nIter, string Tag, int nJump=1
 		    }
 
 		}
+		gStyle->SetOptStat(111111);
 		TString out;
 		h1->Draw();
 		if(isEB==0) out = "plot_" + Path + "/EB_Iter_" + Iter + ".png";

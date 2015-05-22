@@ -30,7 +30,7 @@
 using namespace std;
 
 //.x Step1_MakeHistos.C+("ALL_MINBIAS_UNCAL_L1_NOL1FILTER", true, true)
-void Step1_MakeHistos( TString folder = "ALL_MINBIAS_UNCAL_L1_NOL1FILTER_20bx25_7e33_noCC", bool isEB=false, bool isPi0=true ){
+void Step1_MakeHistos( TString folder = "ALL_MINBIAS_UNCAL_L1_NOL1FILTER_20bx25_7e33_noCC", bool isEB=false, bool isPi0=false ){
 
   //Check options
   if(isEB)  cout<<"Running on Barrel"<<endl;
@@ -63,9 +63,9 @@ void Step1_MakeHistos( TString folder = "ALL_MINBIAS_UNCAL_L1_NOL1FILTER_20bx25_
   TFile* OutFile = new TFile( (folder + nameOutput).Data(),"RECREATE");
   //Input File
   TChain *tree = new TChain("Tree_Optim","Tree_Optim");
-  tree->Add("root://eoscms//eos/cms/store/group/dpg_ecal/alca_ecalcalib/lpernie/ALL_MINBIAS_UNCAL_L1_NOL1FILTER_40PU25ns_EE_pi0/iter_0/epsilonPlots_0.root");
-  tree->Add("root://eoscms//eos/cms/store/group/dpg_ecal/alca_ecalcalib/lpernie/ALL_MINBIAS_UNCAL_L1_NOL1FILTER_40PU25ns_EE_pi0/iter_0/epsilonPlots_1.root");
-  tree->Add("root://eoscms//eos/cms/store/group/dpg_ecal/alca_ecalcalib/lpernie/ALL_MINBIAS_UNCAL_L1_NOL1FILTER_40PU25ns_EE_pi0/iter_0/epsilonPlots_2.root");
+  tree->Add("root://eoscms//eos/cms/store/group/dpg_ecal/alca_ecalcalib/lpernie/ALL_MINBIAS_UNCAL_L1_NOL1FILTER_40PU25ns_EE_eta/iter_0/epsilonPlots.root");
+  tree->Add("root://eoscms//eos/cms/store/group/dpg_ecal/alca_ecalcalib/lpernie/ALL_MINBIAS_UNCAL_L1_NOL1FILTER_40PU25ns_EE_eta/iter_0/epsilonPlots_1.root");
+  tree->Add("root://eoscms//eos/cms/store/group/dpg_ecal/alca_ecalcalib/lpernie/ALL_MINBIAS_UNCAL_L1_NOL1FILTER_40PU25ns_EE_eta/iter_0/epsilonPlots_2.root");
   //tree->Add("root://eoscms//eos/cms/store/group/dpg_ecal/alca_ecalcalib/lpernie/ALL_MINBIAS_UNCAL_optimized_20bx25_7e33_EB_pi0/iter_0/EcalNtp_0.root");
   //tree->Add("root://eoscms//eos/cms/store/group/dpg_ecal/alca_ecalcalib/lpernie/ALL_MINBIAS_UNCAL_optimized_20bx25_7e33_EB_pi0/iter_0/EcalNtp_1.root");
   //tree->Add("root://eoscms//eos/cms/store/group/dpg_ecal/alca_ecalcalib/lpernie/ALL_MINBIAS_UNCAL_optimized_20bx25_7e33_EB_pi0/iter_0/EcalNtp_10.root");

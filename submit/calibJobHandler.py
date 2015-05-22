@@ -62,9 +62,7 @@ else:
 outputdir = pwd+'/'+dirname
 logPath = outputdir + '/log'
 srcPath  = outputdir + '/src'
-
-workdir = pwd+'/'+dirname
-cfgHaddPath  = workdir + '/src/hadd'
+cfgHaddPath  = outputdir + '/src/hadd'
 
 # To compute the num of hadd
 inputlist_f = open( inputlist_n )
