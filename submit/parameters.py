@@ -417,7 +417,9 @@ FROMDIGI=False
 #laserDB             = 'frontier://FrontierProd/CMS_COND_42X_ECAL_LAS'
 #alphaTag            = 'EcalLaserAlphas_EB_sic_btcp152_EE_sic1_btcp116'
 #alphaDB             = 'frontier://FrontierPrep/CMS_COND_ECAL'
-#HLTPaths='AlCa_EcalPi0_*'
+#   HLTPaths='AlCa_EcalPi0_*'                                     # Name of the HLT path selected with useHLTFilter
+#else:
+#   HLTPaths='AlCa_EcalEta_*'                                     # Name of the HLT path selected with useHLTFilter
 
 ##############
 
@@ -442,7 +444,9 @@ FROMDIGI=False
 #alphaTagRecord='EcalLaserAlphasRcd'
 #alphaTag = 'EcalLaserAlphas_lto420-620_progr_data_20111122'
 #alphaDB  = 'frontier://FrontierPrep/CMS_COND_ECAL'
-#HLTPaths='AlCa_EcalPi0_*' 
+#   HLTPaths='AlCa_EcalPi0_*'                                     # Name of the HLT path selected with useHLTFilter
+#else:
+#   HLTPaths='AlCa_EcalEta_*'                                     # Name of the HLT path selected with useHLTFilter
 
 ##2010 AlcaRECO
 ###/afs/cern.ch/cms/CAF/CMSCOMM/COMM_DQM/certification/Collisions10/7TeV/StreamExpress/goodrunlist_json.txt
@@ -459,7 +463,9 @@ FROMDIGI=False
 #useHLTFilter = "False"
 #correctHits = 'False'
 #globaltag='GR_R_42_V21B::All'
-#HLTPaths='AlCa_EcalPi0_*'
+#   HLTPaths='AlCa_EcalPi0_*'                                     # Name of the HLT path selected with useHLTFilter
+#else:
+#   HLTPaths='AlCa_EcalEta_*'                                     # Name of the HLT path selected with useHLTFilter
 #isMC = True
 
 ##MC 2010 AlcaRECO
@@ -476,7 +482,9 @@ FROMDIGI=False
 #useHLTFilter = "False"
 #correctHits = 'False'
 #globaltag='GR_R_42_V21B::All'
-#HLTPaths='AlCa_EcalPi0_*'
+#   HLTPaths='AlCa_EcalPi0_*'                                     # Name of the HLT path selected with useHLTFilter
+#else:
+#   HLTPaths='AlCa_EcalEta_*'                                     # Name of the HLT path selected with useHLTFilter
 #isMC = True
 
 ##MC MINBIAS_PIZERO_ALCARAW_NOL1_v2
@@ -493,7 +501,9 @@ FROMDIGI=False
 #useHLTFilter = "False"                                        # Add to the path the request of a HLT path:  process.AlcaP0Filter.HLTPaths = 
 #correctHits = 'False'
 #globaltag='MCRUN2_74_V6A::All'
-#HLTPaths='AlCa_EcalPi0_*'                                     # Name of the HLT path selected with useHLTFilter
+#   HLTPaths='AlCa_EcalPi0_*'                                     # Name of the HLT path selected with useHLTFilter
+#else:
+#   HLTPaths='AlCa_EcalEta_*'                                     # Name of the HLT path selected with useHLTFilter
 
 ## MC 40bx25 HLT ALCARAW
 #HLTResults = 'False'
@@ -509,7 +519,10 @@ FROMDIGI=False
 #useHLTFilter = "False"
 #correctHits = 'False'
 #globaltag='POSTLS162_V2::All'
-#HLTPaths='AlCa_EcalPi0_*'
+#if(Are_pi0):
+#   HLTPaths='AlCa_EcalPi0_*'                                     # Name of the HLT path selected with useHLTFilter
+#else:
+#   HLTPaths='AlCa_EcalEta_*'                                     # Name of the HLT path selected with useHLTFilter
 
 #MC MINBIAS_PIZERO_ALCARAW_NOL1_v2
 HLTResults = 'False'                                          # Use the function GetHLTResults(iEvent, "AlCa_EcalPi0EBonly.*");
@@ -533,7 +546,10 @@ hltL1GtObjectMap = 'InputTag("hltL1GtObjectMap","","TEST")'
 useHLTFilter = "False"                                        # Add to the path the request of a HLT path:  process.AlcaP0Filter.HLTPaths = 
 correctHits = 'False'
 globaltag='MCRUN2_74_V6A::All'
-HLTPaths='AlCa_EcalPi0_*'                                     # Name of the HLT path selected with useHLTFilter
+if(Are_pi0):
+   HLTPaths='AlCa_EcalPi0_*'                                     # Name of the HLT path selected with useHLTFilter
+else:
+   HLTPaths='AlCa_EcalEta_*'                                     # Name of the HLT path selected with useHLTFilter
 isMC = True
 FROMDIGI = True
 is50ns = False
