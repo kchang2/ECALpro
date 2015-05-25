@@ -76,6 +76,7 @@ for iters in range(nIterations):
         iters = iters + int(sys.argv[2])
     if ( not RunCRAB and not ONLYHADD and not ONLYFIT and not ONLYFINHADD ):
         print "\n*******  ITERATION " + str(iters) + "/" + str(nIterations-1) + "  *******"
+        print "Submitting " + str(njobs) + " jobs"
         for ijob in range(njobs):
             #In case you want the stat. syst
             if ( mode.find('BATCH_RESU_SYST_1') != -1 ):
@@ -102,7 +103,7 @@ for iters in range(nIterations):
             # actually submitting filling tasks
             submitJobs = subprocess.Popen([submit_s], stdout=subprocess.PIPE, shell=True);
             output = submitJobs.communicate()
-            print output
+            print "Out: " + str(output)
 
             # avoid overlapping submission
             time.sleep(1)

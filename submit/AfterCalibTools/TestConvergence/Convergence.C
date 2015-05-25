@@ -62,7 +62,7 @@ void Convergence( string Path_0, string Path, int nIter, string Tag, int nJump=1
     TH2F* rms_EEp = new TH2F("rms_EEp","IC(n)-IC(n-1) iX on x iY on y (EEp)",100,0.5,100.5,100,0.5,100.5);
     TH2F* rms_EEm = new TH2F("rms_EEm","IC(n)-IC(n-1) iY on x iY on y (EEm)",100,0.5,100.5,100,0.5,100.5);
 
-    for(int isEB=0; isEB<2; isEB++){
+    for(int isEB=0; isEB<1; isEB++){
 
 	  float *EB_RMS = NULL;
 	  EB_RMS = new float[nIter];

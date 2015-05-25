@@ -36,15 +36,15 @@ isMC = True
 MakeNtuple4optimization = False
 #InputList and Folder name
 inputlist_n      = 'ALL_Neutrino_Pt2to20_AVE40BX25.list' # list of the input files
-dirname          = 'ALL_Neutrino_Pt2to20_AVE40BX25_FoldEtaRing_02'
+dirname          = 'ALL_Neutrino_Pt2to20_AVE40BX25_FoldEtaRing_03'
 Silent           = False                 # True->Fill modules is silent; False->Fill modules has a standard output
 #TAG, QUEUE and ITERS
 NameTag          = ''                   # Tag to the names to avoid overlap
-queueForDaemon   = '2nw'          # Option suggested: 2nw/2nd, 1nw/1nd, cmscaf1nw/cmscaf1nd... even cmscaf2nw
-queue            = '2nd'
+queueForDaemon   = 'cmscaf1nw'          # Option suggested: 2nw/2nd, 1nw/1nd, cmscaf1nw/cmscaf1nd... even cmscaf2nw
+queue            = 'cmscaf1nd'
 nIterations = 8
 #N files
-ijobmax          = 6                    # 5 number of files per job
+ijobmax          = 12                    # 5 number of files per job
 nHadd            = 35                    # 35 number of files per hadd
 nFit             = 2000                  # number of fits done in parallel
 Barrel_or_Endcap = 'ALL_PLEASE'         # Option: 'ONLY_BARREL','ONLY_ENDCAP','ALL_PLEASE'

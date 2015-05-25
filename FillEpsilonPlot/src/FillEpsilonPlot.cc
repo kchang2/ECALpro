@@ -1596,7 +1596,7 @@ void FillEpsilonPlot::computeEpsilon(std::vector< CaloCluster > & clusters, int 
 		    if( EtaRingCalibEE_ ){
 			for(auto const &iterator : ListEtaFix_xtalEEm){
 			  if( iterator.first == GetRing( iX, iY, VectRing,false) ){ 
-			    for(unsigned int iRtmp=0; iRtmp<iterator.second.size(); iRtmp++){ cout<<"    "<<iterator.second[iRtmp]<<endl; epsilon_EE_h[ iterator.second[iRtmp] ]->Fill( useMassInsteadOfEpsilon_? pi0P4.mass() : eps_k, w ); }
+			    for(unsigned int iRtmp=0; iRtmp<iterator.second.size(); iRtmp++){ epsilon_EE_h[ iterator.second[iRtmp] ]->Fill( useMassInsteadOfEpsilon_? pi0P4.mass() : eps_k, w ); }
 			  }
 			}
 		    }
@@ -1614,7 +1614,7 @@ void FillEpsilonPlot::computeEpsilon(std::vector< CaloCluster > & clusters, int 
 		    if( EtaRingCalibEE_ ){
 			for(auto const &iterator : ListEtaFix_xtalEEp){
 			  if( iterator.first == GetRing( iX, iY, VectRing,false) ){
-			    for(unsigned int iRtmp=0; iRtmp<iterator.second.size(); iRtmp++){ cout<<"    "<<iterator.second[iRtmp]<<endl; epsilon_EE_h[ iterator.second[iRtmp] ]->Fill( useMassInsteadOfEpsilon_? pi0P4.mass() : eps_k, w ); }
+			    for(unsigned int iRtmp=0; iRtmp<iterator.second.size(); iRtmp++){ epsilon_EE_h[ iterator.second[iRtmp] ]->Fill( useMassInsteadOfEpsilon_? pi0P4.mass() : eps_k, w ); }
 			  }
 			}
 		    }
@@ -1766,8 +1766,8 @@ FillEpsilonPlot::beginJob()
   nentries = calibMap_EE->GetEntriesFast();
   for(Long64_t iEntry=0; iEntry<nentries; iEntry++){
     calibMap_EE->GetEntry(iEntry);
-    if(zside_<0.) ListEtaFix_xtalEEm[ GetRing( ix_,iy_, VectRing, true) ].push_back( hashedIndexEE_ );
-    if(zside_>0.) ListEtaFix_xtalEEp[ GetRing( ix_,iy_, VectRing, true) ].push_back( hashedIndexEE_ );
+    if(zside_<0.) ListEtaFix_xtalEEm[ GetRing( ix_,iy_, VectRing, false) ].push_back( hashedIndexEE_ );
+    if(zside_>0.) ListEtaFix_xtalEEp[ GetRing( ix_,iy_, VectRing, false) ].push_back( hashedIndexEE_ );
     if(zside_<0.) ListQuadFix_xtalEEm[ iquadrant_ ].push_back( hashedIndexEE_ );
     if(zside_>0.) ListQuadFix_xtalEEp[ iquadrant_ ].push_back( hashedIndexEE_ );
     std::vector<int> iXYZ; iXYZ.clear(); iXYZ.push_back( ix_ ); iXYZ.push_back( iy_ ); iXYZ.push_back( zside_ ); iXYZ.push_back( iquadrant_ );
