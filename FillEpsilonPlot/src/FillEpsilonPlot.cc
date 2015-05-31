@@ -119,6 +119,8 @@ FillEpsilonPlot::FillEpsilonPlot(const edm::ParameterSet& iConfig)
     EERecHitCollectionTag_             = iConfig.getUntrackedParameter<edm::InputTag>("EERecHitCollectionTag");
     ESRecHitCollectionTag_             = iConfig.getUntrackedParameter<edm::InputTag>("ESRecHitCollectionTag");
     HLTResults_                        = iConfig.getUntrackedParameter<bool>("HLTResults",false);
+    HLTResultsNameEB_                  = iConfig.getUntrackedParameter<std::string>("HLTResultsNameEB");
+    HLTResultsNameEE_                  = iConfig.getUntrackedParameter<std::string>("HLTResultsNameEE");
     RemoveDead_Flag_                   = iConfig.getUntrackedParameter<bool>("RemoveDead_Flag",false);
     RemoveDead_Map_                    = iConfig.getUntrackedParameter<std::string>("RemoveDead_Map");
     L1_Bit_Sele_                       = iConfig.getUntrackedParameter<std::string>("L1_Bit_Sele","");
@@ -236,7 +238,6 @@ FillEpsilonPlot::FillEpsilonPlot(const edm::ParameterSet& iConfig)
 	  EBPHI_Cont_Corr_load( edm::FileInPath( ebPHIContainmentCorrections_.c_str() ).fullPath() );
     }
 #endif
-
     /// subdetector topology
     ebtopology_ = new CaloTopology();
     EcalBarrelHardcodedTopology* ebHTopology = new EcalBarrelHardcodedTopology();
@@ -465,6 +466,7 @@ FillEpsilonPlot::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup
 	cout << "setting labels of triggerComposition histogram" << endl;
     }
   }
+
   //MC Photons (they will be associated to the clusters later)
   Gamma1MC.SetPtEtaPhiE( -999., -999., -999., -999. ); Gamma2MC.SetPtEtaPhiE( -999., -999., -999., -999. );
   if( isMC_ && MC_Asssoc_ ){
@@ -486,6 +488,7 @@ FillEpsilonPlot::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup
 	}
     }
   }
+
 #ifdef DEBUG
   cout << "\n --------------- [DEBUG] Beginning New Event ------------------"<< endl;
 #endif
@@ -524,12 +527,12 @@ FillEpsilonPlot::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup
   bool EB_HLT=true, EE_HLT=true;
   if( HLTResults_ ){
     if(Are_pi0_){
-	EB_HLT = GetHLTResults(iEvent, "AlCa_EcalPi0EBonly.*");
-	EE_HLT = GetHLTResults(iEvent, "AlCa_EcalPi0EEonly.*");
+	EB_HLT = GetHLTResults(iEvent, HLTResultsNameEB_); //Adding * at the end of the sentence make always true the "->Contains" method. So do not use it.
+	EE_HLT = GetHLTResults(iEvent, HLTResultsNameEE_);
     }
     else{
-	EB_HLT = GetHLTResults(iEvent, "AlCa_EcalEtaEBonly_*");
-	EE_HLT = GetHLTResults(iEvent, "AlCa_EcalEtaEEonly_*");
+	EB_HLT = GetHLTResults(iEvent, HLTResultsNameEB_);
+	EE_HLT = GetHLTResults(iEvent, HLTResultsNameEE_);
     }
   }
   //get status from DB
@@ -785,6 +788,7 @@ void FillEpsilonPlot::fillEBClusters(std::vector< CaloCluster > & ebclusters, co
 void FillEpsilonPlot::fillEEClusters(std::vector< CaloCluster > & eseeclusters, std::vector< CaloCluster > & eseeclusters_tot, const edm::Event& iEvent, const EcalChannelStatus &channelStatus)
   /*===============================================================*/
 {
+
   PreshowerTools esClusteringAlgo(geometry, estopology_, esHandle);
 
   std::vector<EcalRecHit> eeseeds;
@@ -1818,7 +1822,6 @@ FillEpsilonPlot::beginJob()
   TTree_JoshMva_EE->Branch("MassEE_mva", &MassEE_mva, "MassEE_mva/F");
   TTree_JoshMva_EE->Branch("MassEEOr_mva", &MassEEOr_mva, "MassEEOr_mva/F");
 #endif
-
 }
 
 
@@ -1855,12 +1858,11 @@ bool FillEpsilonPlot::GetHLTResults(const edm::Event& iEvent, std::string s){
   std::string tempnames;
   int hltCount = hltTriggerResultHandle->size();
   TRegexp reg(TString( s.c_str()) );
-
   for (int i = 0 ; i != hltCount; ++i) {
     TString hltName_tstr(HLTNames.triggerName(i));
     std::string hltName_str(HLTNames.triggerName(i));
-    if ( hltName_tstr.Contains(reg) ){
-	return hltTriggerResultHandle->accept(i);
+    if ( hltName_tstr.Contains(reg) ){          // If reg contains * ir will say always True. So you ask for ->accept(i) to the first HLTName always.
+	return hltTriggerResultHandle->accept(i); // False or True depending if it fired.
     }
   }
   return false;

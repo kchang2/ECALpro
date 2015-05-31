@@ -24,11 +24,12 @@ def printFillCfg1( outputfile ):
         outputfile.write("process.load('Configuration.StandardSequences.Reconstruction_cff')\n")
         outputfile.write("import RecoLocalCalo.EcalRecProducers.ecalMultiFitUncalibRecHit_cfi\n")
         outputfile.write("process.ecalMultiFitUncalibRecHit =  RecoLocalCalo.EcalRecProducers.ecalMultiFitUncalibRecHit_cfi.ecalMultiFitUncalibRecHit.clone()\n")
-        if( is50ns ):
-            outputfile.write("process.ecalMultiFitUncalibRecHit.activeBXs = cms.vint32(-4,-2,0,2,4) #Are 10 (-5-5). For 50ns is (-4,-2,0,2,4) #Is .algoPSet. in latest release\n")
-        else:
-            outputfile.write("process.ecalMultiFitUncalibRecHit.activeBXs = cms.vint32(-5,-4,-3,-2,-1,0,1,2,3,4) #Are 10 (-5-5). For 50ns is (-4,-2,0,2,4) #Is .algoPSet. in latest release\n")
-        outputfile.write("process.ecalMultiFitUncalibRecHit.useLumiInfoRunHeader = cms.bool( False )\n")
+        if( DigiCustomization ):
+            outputfile.write("process.ecalMultiFitUncalibRecHit.algoPSet.useLumiInfoRunHeader = cms.bool( False ) # To read the conditions from the header\n") 
+        if( is50ns and DigiCustomization ):
+            outputfile.write("process.ecalMultiFitUncalibRecHit.algoPSet.activeBXs = cms.vint32(-4,-2,0,2,4) #Are 10 (-5-5). For 50ns is (-4,-2,0,2,4) #No .algoPSet. in old releases\n")
+        if( not is50ns and DigiCustomization ):
+            outputfile.write("process.ecalMultiFitUncalibRecHit.algoPSet.activeBXs = cms.vint32(-5,-4,-3,-2,-1,0,1,2,3,4) #Are 10 (-5-5). For 50ns is (-4,-2,0,2,4) #No .algoPSet. in old releases\n")
         outputfile.write("process.ecalMultiFitUncalibRecHit.EBdigiCollection = cms." + EBdigi + "\n")
         outputfile.write("process.ecalMultiFitUncalibRecHit.EEdigiCollection = cms." + EEdigi + "\n")
         outputfile.write("#UNCALIB to CALIB\n")
@@ -90,6 +91,8 @@ def printFillCfg1( outputfile ):
     outputfile.write('    from HLTrigger.HLTfilters.hltHighLevel_cfi import *\n')
     outputfile.write('    process.AlcaP0Filter = copy.deepcopy(hltHighLevel)\n')
     outputfile.write('    process.AlcaP0Filter.throw = cms.bool(False)\n')
+    if( triggerTag!='' ):
+        outputfile.write('    process.AlcaP0Filter.TriggerResultsTag = cms.' + triggerTag + '\n')
     outputfile.write('    process.AlcaP0Filter.HLTPaths = ["' + HLTPaths + '"]\n\n')
 
     outputfile.write("process.maxEvents = cms.untracked.PSet( input = cms.untracked.int32(" + nEventsPerJob +") )\n")
@@ -151,6 +154,8 @@ def printFillCfg2( outputfile, pwd , iteration, outputDir, ijob ):
     outputfile.write("process.analyzerFillEpsilon.ContCorr_EB                 = cms.untracked.string('CalibCode/FillEpsilonPlot/data/" + EBContCorr + "')\n")
     #outputfile.write("process.analyzerFillEpsilon.json_file                   = cms.untracked.string('CalibCode/FillEpsilonPlot/data/" + json_file + "')\n")
     outputfile.write("process.analyzerFillEpsilon.HLTResults                  = cms.untracked.bool(" + HLTResults + ")\n")
+    outputfile.write("process.analyzerFillEpsilon.HLTResultsNameEB            = cms.untracked.string(" + HLTResultsNameEB + ")\n")
+    outputfile.write("process.analyzerFillEpsilon.HLTResultsNameEE            = cms.untracked.string(" + HLTResultsNameEE + ")\n")
     outputfile.write("process.analyzerFillEpsilon.RemoveDead_Flag             = cms.untracked.bool(" + RemoveDead_Flag + ")\n")
     outputfile.write("process.analyzerFillEpsilon.RemoveDead_Map              = cms.untracked.string('" + RemoveDead_Map + "')\n")
     if(EtaRingCalibEB):
@@ -356,11 +361,13 @@ def printCrab(outputfile, iter):
     outputfile.write("config.Data.splitting = 'FileBased'\n")
     outputfile.write("config.Data.unitsPerJob = " + str(unitsPerJob) + "\n")
     if( isOtherT2 and storageSite=="T2_BE_IIHE" ):
-       outputfile.write("config.Data.outLFN = '" + outLFN + "/iter_" + str(iter) + "'\n")
+       outputfile.write("#Data.outLFN before'\n")
+       outputfile.write("config.Data.outLFNDirBase = '" + outLFN + "/iter_" + str(iter) + "'\n")
        outputfile.write("config.User.voGroup = '" + voGroup + "'\n") #Only needed from lxplus, not from m-machines
     else:
        outputfile.write("config.Data.inputDBS = 'global'\n")
-       outputfile.write("config.Data.outLFN = '" + eosPath + "/" + dirname + "/" + "iter_" + str(iter) + "/'\n")
+       outputfile.write("#Data.outLFN before'\n")
+       outputfile.write("config.Data.outLFNDirBase = '" + eosPath + "/" + dirname + "/" + "iter_" + str(iter) + "/'\n")
     outputfile.write("config.Site.storageSite = '" + storageSite + "'\n")
     outputfile.write("config.JobType.outputFiles = ['EcalNtp_0.root']\n")
     outputfile.write("config.Data.publication = False\n")
@@ -442,3 +449,59 @@ def printFinalHadd(outputfile, list, destination, pwd):
        outputfile.write("echo 'cmsStage -f /tmp//" + NameTag + "epsilonPlots.root " + destination + "'\n")
        outputfile.write("cmsStage -f /tmp/" + NameTag + "epsilonPlots.root " + destination + "\n")
        outputfile.write("rm -f /tmp/" + NameTag + "epsilonPlots.root\n")
+
+def printParallelHaddFAST(outputfile, outFile, listReduced, destination, pwd, numList):
+    import os, sys, imp, re
+    CMSSW_VERSION=os.getenv("CMSSW_VERSION")
+    outputfile.write("#!/bin/bash\n")
+    if(re.match("CMSSW_5_.*_.*",CMSSW_VERSION)):
+         print "WARNING!!!! ----> I'm ging to use a harcoded path: /afs/cern.ch/work/l/lpernie/ECALpro/gitHubCalib/CMSSW_4_2_4/src"
+         print "This because you are in a release CMSSW_5_*_*, that do not allow a hadd with a @file.list."
+         outputfile.write("cd /afs/cern.ch/work/l/lpernie/ECALpro/gitHubCalib/CMSSW_4_2_4/src\n")
+    else:
+         outputfile.write("cd " + pwd + "\n")
+    outputfile.write("eval `scramv1 runtime -sh`\n")
+    outputfile.write("echo \"Copying files locally: awk '{print \"cmsStage -f \"$0 \" /tmp/\"}' " + listReduced + " | bash\"\n")
+    outputfile.write("awk '{print \"cmsStage -f \"$0 \" /tmp/\"}' " + listReduced + " | bash\n")
+    outputfile.write("files=`cat " + listReduced + "`\n")
+    outputfile.write("for file in $files;\n")
+    outputfile.write("do\n")
+    outputfile.write("   SUBSTRING=`echo ${file} | awk -F / '{ print $9 }'`\n")
+    outputfile.write("   echo \"-> FastHadd encode -o /tmp/${SUBSTRING}.pb /tmp/${SUBSTRING}\"\n")
+    outputfile.write("   fastHadd encode -o /tmp/${SUBSTRING}.pb /tmp/${SUBSTRING}\n")
+    outputfile.write("done\n")
+    outputfile.write("echo \"add -o /tmp/" + NameTag + "FinalFile.pb " + NameTag + "*root.pb\"\n")
+    outputfile.write("fastHadd add -o /tmp/" + NameTag + "FinalFile.pb /tmp/" + NameTag + "*root.pb\n")
+    outputfile.write("fastHadd convert -o /tmp/epsilonPlots_" + str(numList) + ".root /tmp/" + NameTag + "FinalFile.pb\n")
+    outputfile.write("echo \"cmsStage /tmp/epsilonPlots_" + str(numList) + ".root " + destination + "\"\n")
+    outputfile.write("cmsStage /tmp/epsilonPlots_" + str(numList) + ".root " + destination + "\n")
+    outputfile.write("rm -rf /tmp/" + NameTag + "EcalNtp_*root*\n")
+    outputfile.write("rm -rf /tmp/" + NameTag + "FinalFile*pb\n")
+
+def printFinalHaddFAST(outputfile, listReduced, destination, pwd):
+    import os, sys, imp, re
+    CMSSW_VERSION=os.getenv("CMSSW_VERSION")
+    outputfile.write("#!/bin/bash\n")
+    if(re.match("CMSSW_5_.*_.*",CMSSW_VERSION)):
+         print "WARNING!!!! ----> I'm ging to use a harcoded path: /afs/cern.ch/work/l/lpernie/ECALpro/gitHubCalib/CMSSW_4_2_4/src"
+         print "This because you are in a release CMSSW_5_*_*, that do not allow a hadd with a @file.list."
+         outputfile.write("cd /afs/cern.ch/work/l/lpernie/ECALpro/gitHubCalib/CMSSW_4_2_4/src\n")
+    else:
+         outputfile.write("cd " + pwd + "\n")
+    outputfile.write("eval `scramv1 runtime -sh`\n")
+    outputfile.write("echo \"Copying files locally: awk '{print \"cmsStage -f \"$0 \" /tmp/\"}' " + listReduced + " | bash\"\n")
+    outputfile.write("awk '{print \"cmsStage -f \"$0 \" /tmp/\"}' " + listReduced + " | bash\n")
+    outputfile.write("files=`cat " + listReduced + "`\n")
+    outputfile.write("for file in $files;\n")
+    outputfile.write("do\n")
+    outputfile.write("   SUBSTRING=`echo ${file} | awk -F / '{ print $9 }'`\n")
+    outputfile.write("   echo \"-> FastHadd encode -o /tmp/${SUBSTRING}.pb /tmp/${SUBSTRING}\"\n")
+    outputfile.write("   fastHadd encode -o /tmp/${SUBSTRING}.pb /tmp/${SUBSTRING}\n")
+    outputfile.write("done\n")
+    outputfile.write("echo \"add -o /tmp/" + NameTag + "FinalFile.pb " + NameTag + "*root.pb\"\n")
+    outputfile.write("fastHadd add -o /tmp/" + NameTag + "FinalFile.pb /tmp/" + NameTag + "*root.pb\n")
+    outputfile.write("fastHadd convert -o /tmp/" + NameTag + "epsilonPlots.root /tmp/" + NameTag + "FinalFile.pb\n")
+    outputfile.write("echo \"cmsStage /tmp/" + NameTag + "epsilonPlots.root " + destination + "\"\n")
+    outputfile.write("cmsStage /tmp/" + NameTag + "epsilonPlots.root " + destination + "\n")
+    outputfile.write("rm -rf /tmp/" + NameTag + "epsilonPlots*root*\n")
+    outputfile.write("rm -rf /tmp/" + NameTag + "FinalFile*pb\n")

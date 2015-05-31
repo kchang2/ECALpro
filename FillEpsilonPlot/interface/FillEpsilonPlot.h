@@ -138,6 +138,8 @@ class FillEpsilonPlot : public edm::EDAnalyzer {
       bool useEEContainmentCorrections_;
       bool useOnlyEEClusterMatchedWithES_;
       bool HLTResults_;
+      std::string HLTResultsNameEB_;
+      std::string HLTResultsNameEE_;
       bool RemoveDead_Flag_;
       TString RemoveDead_Map_;
       TString L1_Bit_Sele_;

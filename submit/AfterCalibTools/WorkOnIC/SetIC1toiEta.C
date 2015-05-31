@@ -44,7 +44,8 @@ struct iXiYtoRing {
 int GetRing(int x, int y, vector<iXiYtoRing> VectRing, bool debug3);
 
 //Usage:
-//.x SetIC1toiEta.C+(true?false,"2011/ABSIC_ResidsualFree.root", "./2011/" "2012D_ETA_ERR/Error_Stat_2012D.root", , 0 )
+//.x SetIC1toiEta.C+(false,"ALL_Neutrino_Pt2to20_AVE40BX25_FoldEtaRing_03/Absolute_IC_AlphaStudies_2012.root","ALL_Neutrino_Pt2to20_AVE40BX25_FoldEtaRing_03","",0,"")
+//.x SetIC1toiEta.C+(true(global)?false(etaRIng),"2011/ABSIC_ResidsualFree.root", "./2011/" "2012D_ETA_ERR/Error_Stat_2012D.root")
 //.x SetIC1toiEta.C+(false,"Compare2012B/2012B_GlobalMY_Vs_Caltech.root", "Compare2012B/", 2 ) [0=not for comparison mine-caltech, 1 for comp., is mine, 2 for comp. is clatech]
 void SetIC1toiEta( bool AllEta, string inputFile,  TString OutPath, string PutStatError="", int isCal=0 , string IOV=""){
 

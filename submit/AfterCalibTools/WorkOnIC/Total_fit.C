@@ -57,26 +57,40 @@ using namespace RooFit;
 //Usage: .x Total_fit.C+("root://eoscms//eos/cms/store/group/dpg_ecal/alca_ecalcalib/lpernie/ALL_Neutrino_Pt2to20_AVE40BX25_FoldEtaRing_eta01/iter_0/epsilonPlots.root", true, true, false )
 void Total_fit( TString File, TString Hname, bool RunOnAll, bool isEB=true, bool Are_pi0_=true ){
 
-  TCanvas* myc1 = new TCanvas("myc1", "CMS", 600, 600);
+  gROOT->SetStyle("Plain");
+  gStyle->SetPalette(1);
+  gStyle->SetOptStat(1111111);  // Show overflow, underflow + SumOfWeights 
+  gStyle->SetOptFit(111110);
+  gStyle->SetOptFile(1); 
+  gStyle->SetMarkerStyle(20);
+  gStyle->SetMarkerSize(.3);
+  gStyle->SetMarkerColor(1);
+  TCanvas* myc1 = new TCanvas("myc1"," ",500,500);
+  myc1->SetLeftMargin(0.16);
   //Files
   cout<<"Opening: "<<File.Data()<<endl;
   TFile* fin = TFile::Open(File.Data());
   //Histos
   int MaxH = 1;
   if( RunOnAll ) MaxH = isEB ? 61200 : 14648;
+  cout<<"Running on "<<MaxH<<" events"<<endl;
   for(int i=0; i<MaxH; i++){
     std::stringstream ind; ind << (int) i;
     TString EBEE   = isEB ? "EB" : "EE";
     TString BarEnd = isEB ? "Barrel" : "Endcap";
     TString name  = BarEnd + "/epsilon_" + EBEE + "_iR_" + TString(ind.str());
-    if( ! RunOnAll ) name = "TESTFIT_pi0EE/" + Hname;
+    if( ! RunOnAll ) name = Hname;
     TH1F *h     = (TH1F*) fin->Get( name.Data() );
-    TString outName = "TESTFIT_pi0EE/" + EBEE + "_iR_" + TString(ind.str()) + ".png";
+    h->SetTitle("");//###
+    TString outName = "MYFIT/" + EBEE + "_iR_" + TString(ind.str()) + ".png";
+    TString outName1 = "MYFIT/" + EBEE + "_iR_" + TString(ind.str()) + ".pdf";
+    TString outName2 = "MYFIT/" + EBEE + "_iR_" + TString(ind.str()) + ".C";
+    TString outName3 = "MYFIT/" + EBEE + "_iR_" + TString(ind.str()) + ".root";
 
     //Fit Method
     int ngaus=1; //1: simple Gaussian, 2: two Gaussian
     float xlo = Are_pi0_? 0.08:0.4, xhi = Are_pi0_? 0.22:0.65;
-    RooRealVar x("x","#gamma#gamma invariant mass",xlo, xhi, "GeV/c^2");
+    RooRealVar x("x","#gamma#gamma invariant mass",xlo, xhi, "GeV/c^{2}");
     RooDataHist dh("dh","#gamma#gamma invariant mass",RooArgList(x),h);
 
     RooRealVar mean("mean","#pi^{0} peak position", Are_pi0_? 0.116:0.57,  Are_pi0_? 0.105:0.5, Are_pi0_? 0.150:0.62,"GeV/c^{2}");
@@ -159,6 +173,8 @@ void Total_fit( TString File, TString Hname, bool RunOnAll, bool isEB=true, bool
     model->plotOn(xframe,Components(bkg),LineStyle(kDashed), LineColor(kRed));
     model->plotOn(xframe);
 
+    xframe->GetYaxis()->SetTitle("Events/(0.002 GeV/c^{2}) ");//###
+    xframe->GetYaxis()->SetTitleOffset(2.05);
     xframe->Draw();
     TLatex lat;
     char line[300];
@@ -166,21 +182,30 @@ void Total_fit( TString File, TString Hname, bool RunOnAll, bool isEB=true, bool
     lat.SetTextSize(0.040);
     lat.SetTextColor(1);
 
-    float xmin(0.55), yhi(0.80), ypass(0.05);
+    float xmin(0.5), yhi(0.80), ypass(0.05);
     if(!Are_pi0_) yhi=0.30;
-    sprintf(line,"Yield: %.0f #pm %.0f", Nsig.getVal(), Nsig.getError() );
+    sprintf(line,"m_{#gamma#gamma} = %.2f #pm %.2f", mean.getVal()*1000., mean.getError()*1000. );
     lat.DrawLatex(xmin,yhi, line);
-    sprintf(line,"m_{#gamma#gamma}: %.2f #pm %.2f", mean.getVal()*1000., mean.getError()*1000. );
+    sprintf(line,"#sigma = %.2f #pm %.2f", sigma.getVal()*1000., sigma.getError()*1000. );
     lat.DrawLatex(xmin,yhi-ypass, line);
-    sprintf(line,"#sigma: %.2f #pm %.2f (%.2f%s)", sigma.getVal()*1000., sigma.getError()*1000., sigma.getVal()*100./mean.getVal(), "%" );
-    lat.DrawLatex(xmin,yhi-2.*ypass, line);
-    sprintf(line,"S/B (3#sigma): %.2f", (integralSig->getVal()*Nsig.getVal())/(integralBkg->getVal()*Nbkg.getVal()) );
-    lat.DrawLatex(xmin,yhi-3.*ypass, line);
-    sprintf(line,"S: %.2f", (integralSig->getVal()*Nsig.getVal()) );
-    lat.DrawLatex(xmin,yhi-4.*ypass, line);
-    sprintf(line,"B: %.2f", (integralBkg->getVal()*Nbkg.getVal()) );
-    lat.DrawLatex(xmin,yhi-5.*ypass, line);
+    //sprintf(line,"N = %.0f #pm %.0f", Nsig.getVal(), Nsig.getError() );
+    //lat.DrawLatex(xmin,yhi-2*ypass, line);
+    //sprintf(line,"Yield: %.0f #pm %.0f", Nsig.getVal(), Nsig.getError() );
+    //lat.DrawLatex(xmin,yhi, line);
+    //sprintf(line,"m_{#gamma#gamma}: %.2f #pm %.2f", mean.getVal()*1000., mean.getError()*1000. );
+    //lat.DrawLatex(xmin,yhi-ypass, line);
+    //sprintf(line,"#sigma: %.2f #pm %.2f (%.2f%s)", sigma.getVal()*1000., sigma.getError()*1000., sigma.getVal()*100./mean.getVal(), "%" );
+    //lat.DrawLatex(xmin,yhi-2.*ypass, line);
+    //sprintf(line,"S/B (3#sigma): %.2f", (integralSig->getVal()*Nsig.getVal())/(integralBkg->getVal()*Nbkg.getVal()) );
+    //lat.DrawLatex(xmin,yhi-3.*ypass, line);
+    //sprintf(line,"S: %.2f", (integralSig->getVal()*Nsig.getVal()) );
+    //lat.DrawLatex(xmin,yhi-4.*ypass, line);
+    //sprintf(line,"B: %.2f", (integralBkg->getVal()*Nbkg.getVal()) );
+    //lat.DrawLatex(xmin,yhi-5.*ypass, line);
     myc1->SaveAs(outName.Data());
+    myc1->SaveAs(outName1.Data());
+    myc1->SaveAs(outName2.Data());
+    myc1->SaveAs(outName3.Data());
     cout<<"Histo Entries: "<<h->GetEntries()<<" and integral: "<<h->Integral()<<endl;
     cout<<"integralSig->getVal()*Nsig.getVal(): "<<integralSig->getVal()*Nsig.getVal()<<" : "<<integralSig->getVal()<<" * "<<Nsig.getVal()<<endl;;
     cout<<"integralBkg->getVal()*Nbkg.getVal(): "<<integralBkg->getVal()*Nbkg.getVal()<<" : "<<integralBkg->getVal()<<" * "<<Nbkg.getVal()<<endl;;

@@ -169,13 +169,19 @@ for iters in range(nIterations):
         for num_list in range(Nlist):
             haddSrc_n_s.append( srcPath + "/hadd/hadd_iter_" + str(iters) + "_step_" + str(num_list)+ ".list")
             haddSrc_f_s.append( open(  haddSrc_n_s[num_list], 'w') )
-            fileToAdd_final_n_s = 'root://eoscms//eos/cms' + eosPath + '/' + dirname + '/iter_' + str(iters) + '/' + Add_path + '/' + NameTag + 'epsilonPlots_' + str(num_list) + '.root\n'
+            if(fastHadd):
+               fileToAdd_final_n_s = eosPath + '/' + dirname + '/iter_' + str(iters) + '/' + Add_path + '/' + NameTag + 'epsilonPlots_' + str(num_list) + '.root\n'
+            else:
+               fileToAdd_final_n_s = 'root://eoscms//eos/cms' + eosPath + '/' + dirname + '/iter_' + str(iters) + '/' + Add_path + '/' + NameTag + 'epsilonPlots_' + str(num_list) + '.root\n'
             if( isOtherT2 and storageSite=="T2_BE_IIHE" ):
                fileToAdd_final_n_s = "dcap://maite.iihe.ac.be/pnfs/iihe/cms" + outLFN + "/iter_" + str(iters) + '/' + NameTag + 'epsilonPlots_' + str(num_list) + '.root\n'
             for nj in range(nHadd):
                 nEff = num_list*nHadd+nj
                 if( nEff < len(getGoodfile_list) ):
-                    fileToAdd_n_s = 'root://eoscms//eos/cms' + str(getGoodfile_list[nEff]) + '\n'
+                    if(fastHadd):
+                        fileToAdd_n_s = str(getGoodfile_list[nEff]) + '\n'
+                    else:
+                        fileToAdd_n_s = 'root://eoscms//eos/cms' + str(getGoodfile_list[nEff]) + '\n'
                     if( isOtherT2 and storageSite=="T2_BE_IIHE" ):
                        fileToAdd_n_s = str(getGoodfile_list[nEff]) + '\n'
                     haddSrc_f_s[num_list].write(fileToAdd_n_s)
@@ -192,14 +198,20 @@ for iters in range(nIterations):
             hadd_cfg_n = cfgHaddPath + "/HaddCfg_iter_" + str(iters) + "_job_" + str(num_list) + ".sh"
             hadd_cfg_f = open( hadd_cfg_n, 'w' )
             HaddOutput = NameTag + "epsilonPlots_" + str(num_list) + ".root"
-            printParallelHadd(hadd_cfg_f, HaddOutput, haddSrc_n_s[num_list], dest, pwd )
+            if(fastHadd):
+                printParallelHaddFAST(hadd_cfg_f, HaddOutput, haddSrc_n_s[num_list], dest, pwd, num_list )
+            else:
+                printParallelHadd(hadd_cfg_f, HaddOutput, haddSrc_n_s[num_list], dest, pwd )
             hadd_cfg_f.close()
             changePermission = subprocess.Popen(['chmod 777 ' + hadd_cfg_n], stdout=subprocess.PIPE, shell=True);
             debugout = changePermission.communicate()
         # print Final hadd
         Fhadd_cfg_n = cfgHaddPath + "/Final_HaddCfg_iter_" + str(iters) + ".sh"
         Fhadd_cfg_f = open( Fhadd_cfg_n, 'w' )
-        printFinalHadd(Fhadd_cfg_f, haddSrc_final_n_s, dest, pwd )
+        if(fastHadd):
+            printFinalHaddFAST(Fhadd_cfg_f, haddSrc_final_n_s, dest, pwd )
+        else:
+            printFinalHadd(Fhadd_cfg_f, haddSrc_final_n_s, dest, pwd )
         Fhadd_cfg_f.close()
 
     #HADD for batch and CRAB, if you do not want just the finalHADD or the FIT
@@ -222,11 +234,20 @@ for iters in range(nIterations):
             #Before each HADD we need ot check if the all the files in the list are present
             #BUT we do that only if you are working on batch
             if not( RunCRAB ):
-               Grepcommand = "grep -i list " + Hadd_src_n + " | grep -v echo | awk '{print $4}'"
+               if(fastHadd):
+                  Grepcommand = "grep -i list " + Hadd_src_n + " | grep -v echo | grep -v bash | awk '{print $2}'"
+               else:
+                  Grepcommand = "grep -i list " + Hadd_src_n + " | grep -v echo | awk '{print $4}'"
                myGrep = subprocess.Popen([Grepcommand], stdout=subprocess.PIPE, shell=True )
                FoutGrep = myGrep.communicate()
-               FoutGrep_2 = str(FoutGrep)[3:]
-               FoutGrep_2 = str(FoutGrep_2)[:-10]
+               if(fastHadd):
+                  FoutGrep_2 = str(FoutGrep)[2:]
+               else:
+                  FoutGrep_2 = str(FoutGrep)[3:]
+               if(fastHadd):
+                  FoutGrep_2 = str(FoutGrep_2)[:-11]
+               else:
+                  FoutGrep_2 = str(FoutGrep_2)[:-10]
                print 'Checking ' + str(FoutGrep_2)
                #Chech The size for each line
                f = open( str(FoutGrep_2) )
@@ -234,6 +255,8 @@ for iters in range(nIterations):
                f.close()
                NumToRem = 0
                for filetoCheck in lines:
+                   if(fastHadd):
+                      filetoCheck = "root://eoscms//eos/cms" + filetoCheck
                    if( NumToRem!=0 ):
                       Num = NumToRem - 1
                       f2 = open(str(FoutGrep_2) + str(Num))

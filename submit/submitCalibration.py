@@ -93,7 +93,6 @@ for iter in range(nIterations):
     Nlist_flo = float(NrelJob/nHadd) + 1.
     Nlist = int(Nlist_flo)
 
-
     haddSrc_n_s = list()
     haddSrc_f_s = list()
 
@@ -104,10 +103,16 @@ for iter in range(nIterations):
     for num_list in range(Nlist):
         haddSrc_n_s.append( srcPath + "/hadd/hadd_iter_" + str(iter) + "_step_" + str(num_list)+ ".list")
         haddSrc_f_s.append( open(  haddSrc_n_s[num_list], 'w') )
-        fileToAdd_final_n_s = 'root://eoscms//eos/cms' + eosPath + '/' + dirname + '/iter_' + str(iter) + '/' + NameTag + 'epsilonPlots_' + str(num_list) + '.root\n'
+        if(fastHadd):
+            fileToAdd_final_n_s = eosPath + '/' + dirname + '/iter_' + str(iter) + '/' + NameTag + 'epsilonPlots_' + str(num_list) + '.root\n'
+        else:
+            fileToAdd_final_n_s = 'root://eoscms//eos/cms' + eosPath + '/' + dirname + '/iter_' + str(iter) + '/' + NameTag + 'epsilonPlots_' + str(num_list) + '.root\n'
         for nj in range(nHadd):
             nEff = num_list*nHadd+nj
-            fileToAdd_n_s = 'root://eoscms//eos/cms' + eosPath + '/' + dirname + '/iter_' + str(iter) + '/' + NameTag + outputFile + '_' + str(nEff) + '.root\n'
+            if(fastHadd):
+                fileToAdd_n_s = eosPath + '/' + dirname + '/iter_' + str(iter) + '/' + NameTag + outputFile + '_' + str(nEff) + '.root\n'
+            else:
+                fileToAdd_n_s = 'root://eoscms//eos/cms' + eosPath + '/' + dirname + '/iter_' + str(iter) + '/' + NameTag + outputFile + '_' + str(nEff) + '.root\n'
             if(nEff < NrelJob) :
                 haddSrc_f_s[num_list].write(fileToAdd_n_s)
         haddSrc_final_f_s.write(fileToAdd_final_n_s)
@@ -120,14 +125,20 @@ for iter in range(nIterations):
         hadd_cfg_n = cfgHaddPath + "/HaddCfg_iter_" + str(iter) + "_job_" + str(num_list) + ".sh"
         hadd_cfg_f = open( hadd_cfg_n, 'w' )
         HaddOutput = NameTag + "epsilonPlots_" + str(num_list) + ".root"
-        printParallelHadd(hadd_cfg_f, HaddOutput, haddSrc_n_s[num_list], dest, pwd )
+        if(fastHadd):
+            printParallelHaddFAST(hadd_cfg_f, HaddOutput, haddSrc_n_s[num_list], dest, pwd, num_list )
+        else:
+            printParallelHadd(hadd_cfg_f, HaddOutput, haddSrc_n_s[num_list], dest, pwd )
         hadd_cfg_f.close()
         changePermission = subprocess.Popen(['chmod 777 ' + hadd_cfg_n], stdout=subprocess.PIPE, shell=True);
         debugout = changePermission.communicate()
     # print Final hadd
     Fhadd_cfg_n = cfgHaddPath + "/Final_HaddCfg_iter_" + str(iter) + ".sh"
     Fhadd_cfg_f = open( Fhadd_cfg_n, 'w' )
-    printFinalHadd(Fhadd_cfg_f, haddSrc_final_n_s, dest, pwd )
+    if(fastHadd):
+        printFinalHaddFAST(Fhadd_cfg_f, haddSrc_final_n_s, dest, pwd )
+    else:
+        printFinalHadd(Fhadd_cfg_f, haddSrc_final_n_s, dest, pwd )
     Fhadd_cfg_f.close()
     # loop over the whole list
     while (len(inputlist_v) > 0):
