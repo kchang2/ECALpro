@@ -154,8 +154,8 @@ def printFillCfg2( outputfile, pwd , iteration, outputDir, ijob ):
     outputfile.write("process.analyzerFillEpsilon.ContCorr_EB                 = cms.untracked.string('CalibCode/FillEpsilonPlot/data/" + EBContCorr + "')\n")
     #outputfile.write("process.analyzerFillEpsilon.json_file                   = cms.untracked.string('CalibCode/FillEpsilonPlot/data/" + json_file + "')\n")
     outputfile.write("process.analyzerFillEpsilon.HLTResults                  = cms.untracked.bool(" + HLTResults + ")\n")
-    outputfile.write("process.analyzerFillEpsilon.HLTResultsNameEB            = cms.untracked.string(" + HLTResultsNameEB + ")\n")
-    outputfile.write("process.analyzerFillEpsilon.HLTResultsNameEE            = cms.untracked.string(" + HLTResultsNameEE + ")\n")
+    outputfile.write("process.analyzerFillEpsilon.HLTResultsNameEB            = cms.untracked.string('" + HLTResultsNameEB + "')\n")
+    outputfile.write("process.analyzerFillEpsilon.HLTResultsNameEE            = cms.untracked.string('" + HLTResultsNameEE + "')\n")
     outputfile.write("process.analyzerFillEpsilon.RemoveDead_Flag             = cms.untracked.bool(" + RemoveDead_Flag + ")\n")
     outputfile.write("process.analyzerFillEpsilon.RemoveDead_Map              = cms.untracked.string('" + RemoveDead_Map + "')\n")
     if(EtaRingCalibEB):

@@ -7,7 +7,7 @@ ExternalGeometry   = 'caloGeometry.root'
 CalibType          = 'xtal'              # Calibrating single xtals. I never try but you could calibrate EtaRing ot Trigger Towers
 
 #Are Pi0
-Are_pi0            = True                # True = using Pi0, False = using Eta
+Are_pi0            = False                # True = using Pi0, False = using Eta
 #Fold per Eta Ring
 EtaRingCalibEB     = False
 SMCalibEB          = True
@@ -35,8 +35,8 @@ if(isCRAB):
 isMC = False
 MakeNtuple4optimization = False
 #InputList and Folder name
-inputlist_n      = 'ALL_2015_MINBIAS_COMMISIONING_v4_AOD.list' # list of the input files
-dirname          = 'ALL_2015_MB_AOD_FastHadd'
+inputlist_n      = 'ALL_2015_MINBIAS_COMMISIONING_v4.list' # list of the input files
+dirname          = 'ALL_2015_MB_Josh_eta_01'
 Silent           = False                 # True->Fill modules is silent; False->Fill modules has a standard output
 #TAG, QUEUE and ITERS
 NameTag          = ''                   # Tag to the names to avoid overlap
@@ -233,77 +233,34 @@ FROMDIGI=False
 # Now decomment the part that correspond to data you want to run on. #
 ######################################################################
 
-##2015 Commissioning MinBias AOD
-isMC               = False
-is_2011            = 'True'                                    # Fit Parameter Range
-HLTResults         = 'False'                                   # Fill the EB(EE) histos only is Eb()ee is fired: it uses GetHLTResults(iEvent, HLTResultsNameEB.Data() );
-json_file          = ''
-overWriteGlobalTag = False                                     # Allow to overwrite AlphaTag, Laser correction etc
-doEnenerScale      = 'False'
-doIC               = 'False'                                   # Member of Recalibration Module
-doLaserCorr        = "False"
-hltGtDigis         = "InputTag('simGtDigis','','TEST')"        # Not used in the Fill.cc   
-triggerTag         = 'InputTag("TriggerResults","","RECO")'    # Run Fill EB only if the HLTPaths for EB(ee) exist. In this sample also extist InputTag('simGtDigis','','HLT')
-hltL1GtObjectMap   = 'InputTag("hltL1GtObjectMap","","TEST")'
-useHLTFilter       = "False"                                   # Add to the path the request of a HLT path:  process.AlcaP0Filter.HLTPaths = 
-correctHits        = 'False'
-globaltag          = 'GR_P_V54::All' #GR_P_V55 soon!
-FROMDIGI           = False
-DigiCustomization  = False
-is50ns = True #If DigiCustomization is True
-if(Are_pi0):                                           # Member of Recalibration Module
-   esInputTag = "InputTag('reducedEcalRecHitsES','','RECO')"
-   HLTPaths='AlCa_EcalPi0E*'                        # HLT Name to ask before running the event. It can contain a *.
-   HLTResultsNameEB   = 'AlCa_EcalPi0EB'            # HLT Name to ask for into the GetHLTResults (do not use name_EB* please)
-   HLTResultsNameEE   = 'AlCa_EcalPi0EE'
-else:
-   esInputTag = "InputTag('reducedEcalRecHitsES','','RECO')"
-   HLTPaths='AlCa_EcalEtaE*' #AlCa_EcalEtaEBonly_LowPU_v1 AlCa_EcalEtaEEonly_LowPU_v1
-   HLTResultsNameEB   = 'AlCa_EcalEtaEB'            # HLT Name to ask for into the GetHLTResults (do not use name_EB* please)
-   HLTResultsNameEE   = 'AlCa_EcalEtaEE'
-if(FROMDIGI):
-   ebInputTag = 'InputTag("ecalRecHit","EcalRecHitsEB","analyzerFillEpsilon")'
-   eeInputTag = 'InputTag("ecalRecHit","EcalRecHitsEE","analyzerFillEpsilon")'
-   if(Are_pi0): 
-      EBdigi = 'InputTag("hltAlCaPi0EBRechitsToDigis","pi0EBDigis","TEST")'
-      EEdigi = 'InputTag("hltAlCaPi0EERechitsToDigis","pi0EEDigis","TEST")'
-   else:
-      EBdigi = 'InputTag("hltAlCaEtaEBRechitsToDigis","etaEBDigis","TEST")'
-      EEdigi = 'InputTag("hltAlCaEtaEERechitsToDigis","etaEEDigis","TEST")'
-else:
-   ebInputTag = 'InputTag("reducedEcalRecHitsEB","","RECO")'
-   eeInputTag = 'InputTag("reducedEcalRecHitsEE","","RECO")'
-
-
-
-###2015 Commissioning MinBias Josh
+###2015 Commissioning MinBias AOD
 #isMC               = False
-#is_2011            = 'True'                                   # Fit Parameter Range
-#HLTResults         = 'True'                                   # Fill the EB(EE) histos only is Eb()ee is fired: it uses GetHLTResults(iEvent, "AlCa_EcalPi0E*");
+#is_2011            = 'True'                                    # Fit Parameter Range
+#HLTResults         = 'False'                                   # Fill the EB(EE) histos only is Eb()ee is fired: it uses GetHLTResults(iEvent, HLTResultsNameEB.Data() );
 #json_file          = ''
-#overWriteGlobalTag = False                                    # Allow to overwrite AlphaTag, Laser correction etc
+#overWriteGlobalTag = False                                     # Allow to overwrite AlphaTag, Laser correction etc
 #doEnenerScale      = 'False'
-#doIC               = 'False'                                  # Member of Recalibration Module
+#doIC               = 'False'                                   # Member of Recalibration Module
 #doLaserCorr        = "False"
-#hltGtDigis         = "InputTag('simGtDigis','','TEST')"
-#triggerTag         = 'InputTag("TriggerResults","","TEST")'
+#hltGtDigis         = "InputTag('simGtDigis','','TEST')"        # Not used in the Fill.cc   
+#triggerTag         = 'InputTag("TriggerResults","","RECO")'    # Run Fill EB only if the HLTPaths for EB(ee) exist. In this sample also extist InputTag('simGtDigis','','HLT')
 #hltL1GtObjectMap   = 'InputTag("hltL1GtObjectMap","","TEST")'
-#useHLTFilter       = "True"                                   # Add to the path the request of a HLT path:  process.AlcaP0Filter.HLTPaths = 
+#useHLTFilter       = "False"                                   # Add to the path the request of a HLT path:  process.AlcaP0Filter.HLTPaths = 
 #correctHits        = 'False'
 #globaltag          = 'GR_P_V54::All' #GR_P_V55 soon!
 #FROMDIGI           = False
 #DigiCustomization  = False
 #is50ns = True #If DigiCustomization is True
 #if(Are_pi0):                                           # Member of Recalibration Module
-#   esInputTag = "InputTag('hltAlCaPi0RecHitsFilterEEonlyRegional','pi0EcalRecHitsES','TEST')"
-#   HLTPaths='AlCa_EcalPi0E*' #AlCa_EcalPi0EBonly_LowPU_v1 AlCa_EcalPi0EEonly_LowPU_v1
-#   HLTResultsNameEB   = 'AlCa_EcalPi0EB'                         # HLT Name to ask for into the GetHLTResults (do not use name_EB* please)
-#   HLTResultsNameEE   = 'AlCa_EcalPi0EE'                                  
+#   esInputTag = "InputTag('reducedEcalRecHitsES','','RECO')"
+#   HLTPaths='AlCa_EcalPi0E*'                        # HLT Name to ask before running the event. It can contain a *.
+#   HLTResultsNameEB   = 'AlCa_EcalPi0EB'            # HLT Name to ask for into the GetHLTResults (do not use name_EB* please)
+#   HLTResultsNameEE   = 'AlCa_EcalPi0EE'
 #else:
-#   esInputTag = "InputTag('hltAlCaEtaRecHitsFilterEEonlyRegional','etaEcalRecHitsES','TEST')"
+#   esInputTag = "InputTag('reducedEcalRecHitsES','','RECO')"
 #   HLTPaths='AlCa_EcalEtaE*' #AlCa_EcalEtaEBonly_LowPU_v1 AlCa_EcalEtaEEonly_LowPU_v1
-#   HLTResultsNameEB   = 'AlCa_EcalEtaEB'                         # HLT Name to ask for into the GetHLTResults (do not use name_EB* please)
-#   HLTResultsNameEE   = 'AlCa_EcalEtaEE'                                  
+#   HLTResultsNameEB   = 'AlCa_EcalEtaEB'            # HLT Name to ask for into the GetHLTResults (do not use name_EB* please)
+#   HLTResultsNameEE   = 'AlCa_EcalEtaEE'
 #if(FROMDIGI):
 #   ebInputTag = 'InputTag("ecalRecHit","EcalRecHitsEB","analyzerFillEpsilon")'
 #   eeInputTag = 'InputTag("ecalRecHit","EcalRecHitsEE","analyzerFillEpsilon")'
@@ -314,8 +271,55 @@ else:
 #      EBdigi = 'InputTag("hltAlCaEtaEBRechitsToDigis","etaEBDigis","TEST")'
 #      EEdigi = 'InputTag("hltAlCaEtaEERechitsToDigis","etaEEDigis","TEST")'
 #else:
-#   ebInputTag = 'InputTag("hltAlCaPi0EBUncalibrator","pi0EcalRecHitsEB","TEST")'
-#   eeInputTag = 'InputTag("hltAlCaPi0EEUncalibrator","pi0EcalRecHitsEE","TEST")'
+#   ebInputTag = 'InputTag("reducedEcalRecHitsEB","","RECO")'
+#   eeInputTag = 'InputTag("reducedEcalRecHitsEE","","RECO")'
+
+
+
+##2015 Commissioning MinBias Josh
+isMC               = False
+is_2011            = 'True'                                   # Fit Parameter Range
+HLTResults         = 'True'                                   # Fill the EB(EE) histos only is Eb()ee is fired: it uses GetHLTResults(iEvent, "AlCa_EcalPi0E*");
+json_file          = ''
+overWriteGlobalTag = False                                    # Allow to overwrite AlphaTag, Laser correction etc
+doEnenerScale      = 'False'
+doIC               = 'False'                                  # Member of Recalibration Module
+doLaserCorr        = "False"
+hltGtDigis         = "InputTag('simGtDigis','','TEST')"
+triggerTag         = 'InputTag("TriggerResults","","TEST")'
+hltL1GtObjectMap   = 'InputTag("hltL1GtObjectMap","","TEST")'
+useHLTFilter       = "True"                                   # Add to the path the request of a HLT path:  process.AlcaP0Filter.HLTPaths = 
+correctHits        = 'False'
+globaltag          = 'GR_P_V54::All' #GR_P_V55 soon!
+FROMDIGI           = False
+DigiCustomization  = False
+is50ns = True #If DigiCustomization is True
+if(Are_pi0):                                           # Member of Recalibration Module
+   esInputTag = "InputTag('hltAlCaPi0RecHitsFilterEEonlyRegional','pi0EcalRecHitsES','TEST')"
+   HLTPaths='AlCa_EcalPi0E*' #AlCa_EcalPi0EBonly_LowPU_v1 AlCa_EcalPi0EEonly_LowPU_v1
+   HLTResultsNameEB   = 'AlCa_EcalPi0EB'                         # HLT Name to ask for into the GetHLTResults (do not use name_EB* please)
+   HLTResultsNameEE   = 'AlCa_EcalPi0EE'                                  
+else:
+   esInputTag = "InputTag('hltAlCaEtaRecHitsFilterEEonlyRegional','etaEcalRecHitsES','TEST')"
+   HLTPaths='AlCa_EcalEtaE*' #AlCa_EcalEtaEBonly_LowPU_v1 AlCa_EcalEtaEEonly_LowPU_v1
+   HLTResultsNameEB   = 'AlCa_EcalEtaEB'                         # HLT Name to ask for into the GetHLTResults (do not use name_EB* please)
+   HLTResultsNameEE   = 'AlCa_EcalEtaEE'                                  
+if(FROMDIGI):
+   ebInputTag = 'InputTag("ecalRecHit","EcalRecHitsEB","analyzerFillEpsilon")'
+   eeInputTag = 'InputTag("ecalRecHit","EcalRecHitsEE","analyzerFillEpsilon")'
+   if(Are_pi0): 
+      EBdigi = 'InputTag("hltAlCaPi0EBRechitsToDigis","pi0EBDigis","TEST")'
+      EEdigi = 'InputTag("hltAlCaPi0EERechitsToDigis","pi0EEDigis","TEST")'
+   else:
+      EBdigi = 'InputTag("hltAlCaEtaEBRechitsToDigis","etaEBDigis","TEST")'
+      EEdigi = 'InputTag("hltAlCaEtaEERechitsToDigis","etaEEDigis","TEST")'
+else:
+   if(Are_pi0):
+      ebInputTag = 'InputTag("hltAlCaPi0EBUncalibrator","pi0EcalRecHitsEB","TEST")'
+      eeInputTag = 'InputTag("hltAlCaPi0EEUncalibrator","pi0EcalRecHitsEE","TEST")'
+   else:
+      ebInputTag = 'InputTag("hltAlCaEtaEBUncalibrator","etaEcalRecHitsEB","TEST")'
+      eeInputTag = 'InputTag("hltAlCaEtaEEUncalibrator","etaEcalRecHitsEE","TEST")'
 
 
 ##2012D
