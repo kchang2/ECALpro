@@ -472,9 +472,9 @@ def printParallelHaddFAST(outputfile, outFile, listReduced, destination, pwd, nu
     outputfile.write("done\n")
     outputfile.write("echo \"add -o /tmp/" + NameTag + "FinalFile.pb " + NameTag + "*root.pb\"\n")
     outputfile.write("fastHadd add -o /tmp/" + NameTag + "FinalFile.pb /tmp/" + NameTag + "*root.pb\n")
-    outputfile.write("fastHadd convert -o /tmp/epsilonPlots_" + str(numList) + ".root /tmp/" + NameTag + "FinalFile.pb\n")
-    outputfile.write("echo \"cmsStage /tmp/epsilonPlots_" + str(numList) + ".root " + destination + "\"\n")
-    outputfile.write("cmsStage /tmp/epsilonPlots_" + str(numList) + ".root " + destination + "\n")
+    outputfile.write("fastHadd convert -o /tmp/" + NameTag + "epsilonPlots_" + str(numList) + ".root /tmp/" + NameTag + "FinalFile.pb\n")
+    outputfile.write("echo \"cmsStage /tmp/" + NameTag + "epsilonPlots_" + str(numList) + ".root " + destination + "\"\n")
+    outputfile.write("cmsStage /tmp/" + NameTag + "epsilonPlots_" + str(numList) + ".root " + destination + "\n")
     outputfile.write("rm -rf /tmp/" + NameTag + "EcalNtp_*root*\n")
     outputfile.write("rm -rf /tmp/" + NameTag + "FinalFile*pb\n")
 

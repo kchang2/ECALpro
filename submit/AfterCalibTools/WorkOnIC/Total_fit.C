@@ -57,46 +57,6 @@ using namespace RooFit;
 //Usage: .x Total_fit.C+("root://eoscms//eos/cms/store/group/dpg_ecal/alca_ecalcalib/lpernie/ALL_Neutrino_Pt2to20_AVE40BX25_FoldEtaRing_eta01/iter_0/epsilonPlots.root", true, true, false )
 void Total_fit( TString File, TString Hname, bool RunOnAll, bool isEB=true, bool Are_pi0_=true ){
  
-  //Style
-  //int H = 600;
-  //int W = 800;
-  //float T = 0.08*H;
-  //float B = 0.12*H;
-  //float L = 0.12*W;
-  //float R = 0.04*W;
-  ////iPos=11 : top-left, left-aligned
-  ////iPos=33 : top-right, right-aligned
-  ////iPos=22 : center, centered
-  //int iPos=22;
-  ////references for T, B, L, R
-  //bool writeExtraText = true;       // if extra text
-  //TString extraText  = "Preliminary";  // default extra text is "Preliminary"
-  //TString lumi_8TeV  = "19.1 fb^{-1}"; // default is "19.7 fb^{-1}"
-  //TString lumi_7TeV  = "4.9 fb^{-1}";  // default is "5.1 fb^{-1}"
-  //int iPeriod = 14;            // 1=7TeV, 2=8TeV, 3=7+8TeV, 7=7+8+13TeV, 14= PU=140,14TeV 
-  //TString canvName = "FigExample_";
-  //canvName += W;
-  //canvName += "-";
-  //canvName += H;
-  //canvName += "_";  
-  //canvName += iPeriod;
-  //if( writeExtraText ) canvName += "-prelim";
-  //if( iPos%10==0 ) canvName += "-out";
-  //else if( iPos%10==1 ) canvName += "-left";
-  //else if( iPos%10==2 )  canvName += "-center";
-  //else if( iPos%10==3 )  canvName += "-right";
-  //TCanvas* myc1 = new TCanvas(canvName,canvName,10,10,W,H);
-  //myc1->SetFillColor(0);
-  //myc1->SetBorderMode(0);
-  //myc1->SetFrameFillStyle(0);
-  //myc1->SetFrameBorderMode(0);
-  //myc1->SetLeftMargin( L/W );
-  //myc1->SetRightMargin( R/W );
-  //myc1->SetTopMargin( T/H );
-  //myc1->SetBottomMargin( B/H );
-  //myc1->SetTickx(0);
-  //myc1->SetTicky(0);
-
   //OLD STYLE
   gROOT->SetStyle("Plain");
   gStyle->SetPalette(1);
@@ -123,11 +83,11 @@ void Total_fit( TString File, TString Hname, bool RunOnAll, bool isEB=true, bool
     TString name  = BarEnd + "/epsilon_" + EBEE + "_iR_" + TString(ind.str());
     if( ! RunOnAll ) name = Hname;
     TH1F *h     = (TH1F*) fin->Get( name.Data() );
-    h->SetTitle("");//###
-    TString outName = "MYFIT/" + EBEE + "_iR_" + TString(ind.str()) + "_" + isPi0 + ".png";
-    TString outName1 = "MYFIT/" + EBEE + "_iR_" + TString(ind.str()) + "_" + isPi0 +".pdf";
-    TString outName2 = "MYFIT/" + EBEE + "_iR_" + TString(ind.str()) + "_" + isPi0  +".C";
-    TString outName3 = "MYFIT/" + EBEE + "_iR_" + TString(ind.str()) + "_" + isPi0  +".root";
+    h->SetTitle("");
+    TString outName = "MYFIT_2015A/" + EBEE + "_iR_" + TString(ind.str()) + "_" + isPi0 + ".png";
+    TString outName1 = "MYFIT_2015A/" + EBEE + "_iR_" + TString(ind.str()) + "_" + isPi0 +".pdf";
+    TString outName2 = "MYFIT_2015A/" + EBEE + "_iR_" + TString(ind.str()) + "_" + isPi0  +".C";
+    TString outName3 = "MYFIT_2015A/" + EBEE + "_iR_" + TString(ind.str()) + "_" + isPi0  +".root";
 
     //Fit Method
     int ngaus=1; //1: simple Gaussian, 2: two Gaussian
