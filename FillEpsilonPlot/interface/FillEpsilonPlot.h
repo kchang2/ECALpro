@@ -223,6 +223,7 @@ class FillEpsilonPlot : public edm::EDAnalyzer {
       TH1F *allEpsilon_EE; 
       TH1F *allEpsilon_EEnw; 
       TH1F *allEpsilon_EB;
+      TH1F *allEpsilon_EBnw;
       TH2F *entries_EEp;
       TH2F *entries_EEm;
       TH2F *entries_EB;

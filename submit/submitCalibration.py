@@ -241,10 +241,7 @@ for iter in range(nIterations):
         fit_cfg_f = open( fit_cfg_n, 'w' )
 
         # print the cfg file
-        if( isOtherT2 and storageSite=="T2_BE_IIHE" and isCRAB ):
-            printFitCfg( fit_cfg_f , iter, "/tmp",inListE[nFit],finListE[nFit],"Endcap",nFit)
-        else:
-            printFitCfg( fit_cfg_f , iter, "$TMPDIR",inListE[nFit],finListE[nFit],"Endcap",nFit)
+        printFitCfg( fit_cfg_f , iter, "/tmp",inListE[nFit],finListE[nFit],"Endcap",nFit)
 
         fit_cfg_f.close()
 

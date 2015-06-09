@@ -119,8 +119,8 @@ FillEpsilonPlot::FillEpsilonPlot(const edm::ParameterSet& iConfig)
     EERecHitCollectionTag_             = iConfig.getUntrackedParameter<edm::InputTag>("EERecHitCollectionTag");
     ESRecHitCollectionTag_             = iConfig.getUntrackedParameter<edm::InputTag>("ESRecHitCollectionTag");
     HLTResults_                        = iConfig.getUntrackedParameter<bool>("HLTResults",false);
-    HLTResultsNameEB_                  = iConfig.getUntrackedParameter<std::string>("HLTResultsNameEB");
-    HLTResultsNameEE_                  = iConfig.getUntrackedParameter<std::string>("HLTResultsNameEE");
+    HLTResultsNameEB_                  = iConfig.getUntrackedParameter<std::string>("HLTResultsNameEB","AlCa_EcalPi0EB");
+    HLTResultsNameEE_                  = iConfig.getUntrackedParameter<std::string>("HLTResultsNameEE","AlCa_EcalPi0EE");
     RemoveDead_Flag_                   = iConfig.getUntrackedParameter<bool>("RemoveDead_Flag",false);
     RemoveDead_Map_                    = iConfig.getUntrackedParameter<std::string>("RemoveDead_Map");
     L1_Bit_Sele_                       = iConfig.getUntrackedParameter<std::string>("L1_Bit_Sele","");
@@ -277,6 +277,7 @@ FillEpsilonPlot::FillEpsilonPlot(const edm::ParameterSet& iConfig)
     EventFlow_EE->GetXaxis()->SetBinLabel(1,"All Events"); EventFlow_EE->GetXaxis()->SetBinLabel(2,"HLT");
     EventFlow_EE->GetXaxis()->SetBinLabel(3,"Initial Comb."); EventFlow_EE->GetXaxis()->SetBinLabel(4,"Final Comb.");
     allEpsilon_EB = new TH1F("allEpsilon_EB", "allEpsilon_EB",240, Are_pi0_? 0.:0.3 , Are_pi0_? 0.5:0.8 );
+    allEpsilon_EBnw = new TH1F("allEpsilon_EBnw", "allEpsilon_EBnw",240, Are_pi0_? 0.:0.3 , Are_pi0_? 0.5:0.8 );
     allEpsilon_EE = new TH1F("allEpsilon_EE", "allEpsilon_EE",240, Are_pi0_? 0.:0.3 , Are_pi0_? 0.5:0.8 );
     allEpsilon_EEnw = new TH1F("allEpsilon_EEnw", "allEpsilon_EEnw",240, Are_pi0_? 0.:0.3 , Are_pi0_? 0.5:0.8 );
     entries_EEp   = new TH2F("entries_EEp","entries_EEp",101,-0.5,100.5,101,-0.5,100.5);
@@ -395,6 +396,7 @@ FillEpsilonPlot::~FillEpsilonPlot()
   if( !MakeNtuple4optimization_ && (Barrel_orEndcap_=="ONLY_BARREL" || Barrel_orEndcap_=="ALL_PLEASE" ) ) deleteEpsilonPlot(epsilon_EB_h, regionalCalibration_->getCalibMap()->getNRegionsEB() );
   if( !MakeNtuple4optimization_ && (Barrel_orEndcap_=="ONLY_ENDCAP" || Barrel_orEndcap_=="ALL_PLEASE" ) ) deleteEpsilonPlot(epsilon_EE_h, regionalCalibration_->getCalibMap()->getNRegionsEE() );
   delete allEpsilon_EB;
+  delete allEpsilon_EBnw;
   delete allEpsilon_EE;
   delete allEpsilon_EEnw;
   delete entries_EEp;
@@ -1542,6 +1544,7 @@ void FillEpsilonPlot::computeEpsilon(std::vector< CaloCluster > & clusters, int 
 	  float eps_k = 0.5 * ( r2 - 1. );
 	  // compute quantities needed for <eps>_j in each region j
 	  if(subDetId!=EcalBarrel) allEpsilon_EEnw->Fill( pi0P4.mass() );
+	  if(subDetId==EcalBarrel) allEpsilon_EBnw->Fill( pi0P4.mass() );
 	  for(RegionWeightVector::const_iterator it = w1.begin(); it != w1.end(); ++it) {
 	    const uint32_t& iR = (*it).iRegion;
 	    const float& w = (*it).value;
@@ -1941,6 +1944,7 @@ void FillEpsilonPlot::endJob(){
   EventFlow_EB->Write();
   EventFlow_EE->Write();
   allEpsilon_EB->Write();
+  allEpsilon_EBnw->Write();
   allEpsilon_EE->Write();
   allEpsilon_EEnw->Write();
   entries_EEp->Write();

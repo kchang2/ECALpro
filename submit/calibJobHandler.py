@@ -134,8 +134,8 @@ for iters in range(nIterations):
         if( storageSite=="T2_CH_CERN" ):
            for Extra_path in ListPaths:
                print 'LETS TRY: ' + Extra_path
-               print 'Getting Good file: ' + "cmsLs " + eosPath + "/" + dirname + "/iter_" + str(iters) + "/" + Extra_path + " | awk '{print $5}' | grep root"
-               getGoodfile = subprocess.Popen(["cmsLs " + eosPath + "/" + dirname + "/iter_" + str(iters) + "/" + Extra_path +  " | awk '{print $5}' | grep root" ], stdout=subprocess.PIPE, shell=True)
+               print 'Getting Good file: ' + "cmsLs " + eosPath + "/" + dirname + "/iter_" + str(iters) + "/" + Extra_path + " | awk '{print $5}' | grep root | grep -v epsilonPlots"
+               getGoodfile = subprocess.Popen(["cmsLs " + eosPath + "/" + dirname + "/iter_" + str(iters) + "/" + Extra_path +  " | awk '{print $5}' | grep root | grep -v epsilonPlots" ], stdout=subprocess.PIPE, shell=True)
                getGoodfile_c = getGoodfile.communicate()
                getGoodfile_str += str(getGoodfile_c)
         if( isOtherT2 and storageSite=="T2_BE_IIHE" ):
@@ -389,13 +389,16 @@ for iters in range(nIterations):
         #if isCRAB change the path of the files
         if(isCRAB):
             #Correct path into the cfg
-            with open(fit_cfg_n, 'a') as file:
-                 if( isOtherT2 and storageSite=="T2_BE_IIHE" and isCRAB ):
-                     file.write("process.fitEpsilon.EpsilonPlotFileName = cms.untracked.string('dcap://maite.iihe.ac.be/pnfs/iihe/cms" + outLFN + "/iter_" + str(iters) + '/' + NameTag + "epsilonPlots.root')\n")
-                     file.write("process.fitEpsilon.calibMapPath = cms.untracked.string('dcap://maite.iihe.ac.be/pnfs/iihe/cms" + outLFN + "/iter_" + str(iters-1) + "/" + Add_path + "/" + NameTag + calibMapName + "')\n")
-                 else:
-                     file.write("process.fitEpsilon.EpsilonPlotFileName = cms.untracked.string('root://eoscms//eos/cms" + eosPath + "/" + dirname + "/iter_" + str(iters) + "/" + Add_path + "/" + NameTag + "epsilonPlots.root')\n")
-                     file.write("process.fitEpsilon.calibMapPath = cms.untracked.string('root://eoscms//eos/cms" + eosPath + "/" + dirname + "/iter_" + str(iters-1) + "/" + Add_path + "/" + NameTag + calibMapName + "')\n")
+            if not( '#FILE_APPEPENDED' in open(fit_cfg_n).read()):
+               with open(fit_cfg_n, 'a') as file:
+                    if( isOtherT2 and storageSite=="T2_BE_IIHE" and isCRAB ):
+                        file.write("#FILE_APPEPENDED\n")
+                        file.write("process.fitEpsilon.EpsilonPlotFileName = cms.untracked.string('dcap://maite.iihe.ac.be/pnfs/iihe/cms" + outLFN + "/iter_" + str(iters) + '/' + NameTag + "epsilonPlots.root')\n")
+                        file.write("process.fitEpsilon.calibMapPath = cms.untracked.string('dcap://maite.iihe.ac.be/pnfs/iihe/cms" + outLFN + "/iter_" + str(iters-1) + "/" + Add_path + "/" + NameTag + calibMapName + "')\n")
+                    else:
+                        file.write("#FILE_APPEPENDED\n")
+                        file.write("process.fitEpsilon.EpsilonPlotFileName = cms.untracked.string('root://eoscms//eos/cms" + eosPath + "/" + dirname + "/iter_" + str(iters) + "/" + Add_path + "/" + NameTag + "epsilonPlots.root')\n")
+                        file.write("process.fitEpsilon.calibMapPath = cms.untracked.string('root://eoscms//eos/cms" + eosPath + "/" + dirname + "/iter_" + str(iters-1) + "/" + Add_path + "/" + NameTag + calibMapName + "')\n")
             #Correct path into the src
             logpath = pwd + "/" + dirname + "/log/" + "fitEpsilonPlot_EB_" + str(inteb) + "_iter_" + str(iters) + ".log"
             if( isOtherT2 and storageSite=="T2_BE_IIHE" and isCRAB ):
@@ -404,15 +407,18 @@ for iters in range(nIterations):
             else:
                  tmpsource = "/tmp/" + NameTag + "Barrel_" + str(inteb) + "_" + calibMapName
                  destination = eosPath + '/' + dirname + '/iter_' + str(iters) + "/" + Add_path + "/" + NameTag + "Barrel_" + str(inteb)+ "_" + calibMapName
-            with open(fit_src_n, 'a') as file2:
-                 if( isOtherT2 and storageSite=="T2_BE_IIHE" and isCRAB ):
-                     file2.write("echo 'srmcp file:///" + tmpsource + " " + destination + "' >> " + logpath  + "\n")
-                     file2.write("srmcp file:///" + tmpsource + " " + destination + " >> " + logpath + " 2>&1 \n")
-                 else:
-                     file2.write("echo 'cmsStage -f " + tmpsource + " " + destination + "' >> " + logpath  + "\n")
-                     file2.write("cmsStage -f " + tmpsource + " " + destination + " >> " + logpath + " 2>&1 \n")
-                 file2.write("echo 'rm -f " + tmpsource + "' >> " + logpath + " \n")
-                 file2.write("rm -f " + tmpsource + " >> " + logpath + " 2>&1 \n")
+            if not( '#FILE_APPEPENDED' in open(fit_src_n).read()):
+               with open(fit_src_n, 'a') as file2:
+                    if( isOtherT2 and storageSite=="T2_BE_IIHE" and isCRAB ):
+                        file2.write("#FILE_APPEPENDED\n")
+                        file2.write("echo 'srmcp file:///" + tmpsource + " " + destination + "' >> " + logpath  + "\n")
+                        file2.write("srmcp file:///" + tmpsource + " " + destination + " >> " + logpath + " 2>&1 \n")
+                    else:
+                        file2.write("#FILE_APPEPENDED\n")
+                        file2.write("echo 'cmsStage -f " + tmpsource + " " + destination + "' >> " + logpath  + "\n")
+                        file2.write("cmsStage -f " + tmpsource + " " + destination + " >> " + logpath + " 2>&1 \n")
+                    file2.write("echo 'rm -f " + tmpsource + "' >> " + logpath + " \n")
+                    file2.write("rm -f " + tmpsource + " >> " + logpath + " 2>&1 \n")
         if( isOtherT2 and storageSite=="T2_BE_IIHE" and isCRAB ):
             submit_s = "qsub -q localgrid@cream02 -o /dev/null -e /dev/null " + fit_src_n
             ListFinaHaddEB.append("dcap://maite.iihe.ac.be/pnfs/iihe/cms" + outLFN + "/iter_" + str(iters) + '/' + NameTag + 'Barrel_'+str(inteb) + '_' + calibMapName)
@@ -435,13 +441,16 @@ for iters in range(nIterations):
         #if isCRAB change the path of the files
         if(isCRAB):
             #Correct path into the cfg
-            with open(fit_cfg_n, 'a') as file:
-                 if( isOtherT2 and storageSite=="T2_BE_IIHE" and isCRAB ):
-                     file.write("process.fitEpsilon.EpsilonPlotFileName = cms.untracked.string('dcap://maite.iihe.ac.be/pnfs/iihe/cms" + outLFN + "/iter_" + str(iters) + '/' + NameTag + "epsilonPlots.root')\n")
-                     file.write("process.fitEpsilon.calibMapPath = cms.untracked.string('dcap://maite.iihe.ac.be/pnfs/iihe/cms" + outLFN + "/iter_" + str(iters-1) + "/" + Add_path + "/" + NameTag + calibMapName + "')\n")
-                 else:
-                     file.write("process.fitEpsilon.EpsilonPlotFileName = cms.untracked.string('root://eoscms//eos/cms" + eosPath + "/" + dirname + "/iter_" + str(iters) + "/" + Add_path + "/" + NameTag + "epsilonPlots.root')\n")
-                     file.write("process.fitEpsilon.calibMapPath = cms.untracked.string('root://eoscms//eos/cms" + eosPath + "/" + dirname + "/iter_" + str(iters-1) + "/" + Add_path + "/" + NameTag + calibMapName + "')\n")
+            if not( '#FILE_APPEPENDED' in open(fit_cfg_n).read()):
+               with open(fit_cfg_n, 'a') as file:
+                    if( isOtherT2 and storageSite=="T2_BE_IIHE" and isCRAB ):
+                        file.write("#FILE_APPEPENDED\n")
+                        file.write("process.fitEpsilon.EpsilonPlotFileName = cms.untracked.string('dcap://maite.iihe.ac.be/pnfs/iihe/cms" + outLFN + "/iter_" + str(iters) + '/' + NameTag + "epsilonPlots.root')\n")
+                        file.write("process.fitEpsilon.calibMapPath = cms.untracked.string('dcap://maite.iihe.ac.be/pnfs/iihe/cms" + outLFN + "/iter_" + str(iters-1) + "/" + Add_path + "/" + NameTag + calibMapName + "')\n")
+                    else:
+                        file.write("#FILE_APPEPENDED\n")
+                        file.write("process.fitEpsilon.EpsilonPlotFileName = cms.untracked.string('root://eoscms//eos/cms" + eosPath + "/" + dirname + "/iter_" + str(iters) + "/" + Add_path + "/" + NameTag + "epsilonPlots.root')\n")
+                        file.write("process.fitEpsilon.calibMapPath = cms.untracked.string('root://eoscms//eos/cms" + eosPath + "/" + dirname + "/iter_" + str(iters-1) + "/" + Add_path + "/" + NameTag + calibMapName + "')\n")
             #Correct path into the src
             logpath = pwd + "/" + dirname + "/log/" + "fitEpsilonPlot_EE_" + str(inte) + "_iter_" + str(iters) + ".log"
             if( isOtherT2 and storageSite=="T2_BE_IIHE" and isCRAB ):
@@ -450,15 +459,18 @@ for iters in range(nIterations):
             else:
                 tmpsource = "/tmp/" + NameTag + "Endcap_" + str(inte) + "_" + calibMapName
                 destination = eosPath + '/' + dirname + '/iter_' + str(iters) + "/" + Add_path + "/" + NameTag + "Endcap_" + str(inte)+ "_" + calibMapName
-            with open(fit_src_n, 'a') as file2:
-                 if( isOtherT2 and storageSite=="T2_BE_IIHE" and isCRAB ):
-                     file2.write("echo 'srmcp file:///" + tmpsource + " " + destination + "' >> " + logpath  + "\n")
-                     file2.write("srmcp file:///" + tmpsource + " " + destination + " >> " + logpath + " 2>&1 \n")
-                 else:
-                     file2.write("echo 'cmsStage -f " + tmpsource + " " + destination + "' >> " + logpath  + "\n")
-                     file2.write("cmsStage -f " + tmpsource + " " + destination + " >> " + logpath + " 2>&1 \n")
-                 file2.write("echo 'rm -f " + tmpsource + "' >> " + logpath + " \n")
-                 file2.write("rm -f " + tmpsource + " >> " + logpath + " 2>&1 \n")
+            if not( '#FILE_APPEPENDED' in open(fit_src_n).read()):
+               with open(fit_src_n, 'a') as file2:
+                    if( isOtherT2 and storageSite=="T2_BE_IIHE" and isCRAB ):
+                        file2.write("#FILE_APPEPENDED\n")
+                        file2.write("echo 'srmcp file:///" + tmpsource + " " + destination + "' >> " + logpath  + "\n")
+                        file2.write("srmcp file:///" + tmpsource + " " + destination + " >> " + logpath + " 2>&1 \n")
+                    else:
+                        file2.write("#FILE_APPEPENDED\n")
+                        file2.write("echo 'cmsStage -f " + tmpsource + " " + destination + "' >> " + logpath  + "\n")
+                        file2.write("cmsStage -f " + tmpsource + " " + destination + " >> " + logpath + " 2>&1 \n")
+                    file2.write("echo 'rm -f " + tmpsource + "' >> " + logpath + " \n")
+                    file2.write("rm -f " + tmpsource + " >> " + logpath + " 2>&1 \n")
         if( isOtherT2 and storageSite=="T2_BE_IIHE" and isCRAB ):
             submit_s = "qsub -q localgrid@cream02 -o /dev/null -e /dev/null " + fit_src_n
             ListFinaHaddEE.append("dcap://maite.iihe.ac.be/pnfs/iihe/cms" + outLFN + "/iter_" + str(iters) + '/' + NameTag + 'Endcap_'+str(inte) + '_' + calibMapName)

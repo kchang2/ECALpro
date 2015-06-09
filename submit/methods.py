@@ -154,8 +154,10 @@ def printFillCfg2( outputfile, pwd , iteration, outputDir, ijob ):
     outputfile.write("process.analyzerFillEpsilon.ContCorr_EB                 = cms.untracked.string('CalibCode/FillEpsilonPlot/data/" + EBContCorr + "')\n")
     #outputfile.write("process.analyzerFillEpsilon.json_file                   = cms.untracked.string('CalibCode/FillEpsilonPlot/data/" + json_file + "')\n")
     outputfile.write("process.analyzerFillEpsilon.HLTResults                  = cms.untracked.bool(" + HLTResults + ")\n")
-    outputfile.write("process.analyzerFillEpsilon.HLTResultsNameEB            = cms.untracked.string('" + HLTResultsNameEB + "')\n")
-    outputfile.write("process.analyzerFillEpsilon.HLTResultsNameEE            = cms.untracked.string('" + HLTResultsNameEE + "')\n")
+    if(HLTResultsNameEB!=""):
+        outputfile.write("process.analyzerFillEpsilon.HLTResultsNameEB            = cms.untracked.string('" + HLTResultsNameEB + "')\n")
+    if(HLTResultsNameEE!=""):
+        outputfile.write("process.analyzerFillEpsilon.HLTResultsNameEE            = cms.untracked.string('" + HLTResultsNameEE + "')\n")
     outputfile.write("process.analyzerFillEpsilon.RemoveDead_Flag             = cms.untracked.bool(" + RemoveDead_Flag + ")\n")
     outputfile.write("process.analyzerFillEpsilon.RemoveDead_Map              = cms.untracked.string('" + RemoveDead_Map + "')\n")
     if(EtaRingCalibEB):
@@ -361,15 +363,13 @@ def printCrab(outputfile, iter):
     outputfile.write("config.Data.splitting = 'FileBased'\n")
     outputfile.write("config.Data.unitsPerJob = " + str(unitsPerJob) + "\n")
     if( isOtherT2 and storageSite=="T2_BE_IIHE" ):
-       outputfile.write("#Data.outLFN before'\n")
        outputfile.write("config.Data.outLFNDirBase = '" + outLFN + "/iter_" + str(iter) + "'\n")
        outputfile.write("config.User.voGroup = '" + voGroup + "'\n") #Only needed from lxplus, not from m-machines
     else:
        outputfile.write("config.Data.inputDBS = 'global'\n")
-       outputfile.write("#Data.outLFN before'\n")
        outputfile.write("config.Data.outLFNDirBase = '" + eosPath + "/" + dirname + "/" + "iter_" + str(iter) + "/'\n")
     outputfile.write("config.Site.storageSite = '" + storageSite + "'\n")
-    outputfile.write("config.JobType.outputFiles = ['EcalNtp_0.root']\n")
+    outputfile.write("config.JobType.outputFiles = ['" + NameTag + "EcalNtp_0.root']\n")
     outputfile.write("config.Data.publication = False\n")
 
 def printCrabHadd(outputfile, iter, pwd):
@@ -466,7 +466,10 @@ def printParallelHaddFAST(outputfile, outFile, listReduced, destination, pwd, nu
     outputfile.write("files=`cat " + listReduced + "`\n")
     outputfile.write("for file in $files;\n")
     outputfile.write("do\n")
-    outputfile.write("   SUBSTRING=`echo ${file} | awk -F / '{ print $9 }'`\n")
+    if( isCRAB ):
+        outputfile.write("   SUBSTRING=`echo ${file} | awk -F / '{ print $14 }'`\n")
+    else:
+        outputfile.write("   SUBSTRING=`echo ${file} | awk -F / '{ print $9 }'`\n")
     outputfile.write("   echo \"-> FastHadd encode -o /tmp/${SUBSTRING}.pb /tmp/${SUBSTRING}\"\n")
     outputfile.write("   fastHadd encode -o /tmp/${SUBSTRING}.pb /tmp/${SUBSTRING}\n")
     outputfile.write("done\n")
@@ -474,7 +477,7 @@ def printParallelHaddFAST(outputfile, outFile, listReduced, destination, pwd, nu
     outputfile.write("fastHadd add -o /tmp/" + NameTag + "FinalFile.pb /tmp/" + NameTag + "*root.pb\n")
     outputfile.write("fastHadd convert -o /tmp/" + NameTag + "epsilonPlots_" + str(numList) + ".root /tmp/" + NameTag + "FinalFile.pb\n")
     outputfile.write("echo \"cmsStage /tmp/" + NameTag + "epsilonPlots_" + str(numList) + ".root " + destination + "\"\n")
-    outputfile.write("cmsStage /tmp/" + NameTag + "epsilonPlots_" + str(numList) + ".root " + destination + "\n")
+    outputfile.write("cmsStage -f /tmp/" + NameTag + "epsilonPlots_" + str(numList) + ".root " + destination + "\n")
     outputfile.write("rm -rf /tmp/" + NameTag + "EcalNtp_*root*\n")
     outputfile.write("rm -rf /tmp/" + NameTag + "FinalFile*pb\n")
 
@@ -494,7 +497,10 @@ def printFinalHaddFAST(outputfile, listReduced, destination, pwd):
     outputfile.write("files=`cat " + listReduced + "`\n")
     outputfile.write("for file in $files;\n")
     outputfile.write("do\n")
-    outputfile.write("   SUBSTRING=`echo ${file} | awk -F / '{ print $9 }'`\n")
+    if( isCRAB ):
+        outputfile.write("   SUBSTRING=`echo ${file} | awk -F / '{ print $14 }'`\n")
+    else:
+        outputfile.write("   SUBSTRING=`echo ${file} | awk -F / '{ print $9 }'`\n")
     outputfile.write("   echo \"-> FastHadd encode -o /tmp/${SUBSTRING}.pb /tmp/${SUBSTRING}\"\n")
     outputfile.write("   fastHadd encode -o /tmp/${SUBSTRING}.pb /tmp/${SUBSTRING}\n")
     outputfile.write("done\n")
@@ -502,6 +508,6 @@ def printFinalHaddFAST(outputfile, listReduced, destination, pwd):
     outputfile.write("fastHadd add -o /tmp/" + NameTag + "FinalFile.pb /tmp/" + NameTag + "*root.pb\n")
     outputfile.write("fastHadd convert -o /tmp/" + NameTag + "epsilonPlots.root /tmp/" + NameTag + "FinalFile.pb\n")
     outputfile.write("echo \"cmsStage /tmp/" + NameTag + "epsilonPlots.root " + destination + "\"\n")
-    outputfile.write("cmsStage /tmp/" + NameTag + "epsilonPlots.root " + destination + "\n")
+    outputfile.write("cmsStage -f /tmp/" + NameTag + "epsilonPlots.root " + destination + "\n")
     outputfile.write("rm -rf /tmp/" + NameTag + "epsilonPlots*root*\n")
     outputfile.write("rm -rf /tmp/" + NameTag + "FinalFile*pb\n")
