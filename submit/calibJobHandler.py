@@ -20,7 +20,7 @@ elif ( mode.find('BATCH_RESU') != -1 ):                                   # Batc
        print "usage thisPyton.py BATCH_RESU nITER queue nJobs"
        sys.exit(1)
 else:                                                                                 # CRAB
-    if len(sys.argv) != 5:
+    if len(sys.argv) != 6:
        print "usage thisPyton.py CRAB currentITER queue (bsub -q " + queueForDaemon + " 'source " + pwd + "/" + dirname + "/CRAB_files/HaddSendafterCrab_XXX.sh')"
        print "or"
        print "Change CRAB with CRAB_RESU_FinalHadd in: (bsub -q " + queueForDaemon + " 'source " + pwd + "/" + dirname + "/CRAB_files/HaddSendafterCrab_XXX.sh')"
@@ -44,12 +44,14 @@ if ( mode.find('ONLYFIT') != -1 ):
      ONLYFIT = True;
 
 Add_path = ''
+Add_pathOLDIter = ''
 ListPaths = []
 if ( RunCRAB ):
     nIterations = 1
     njobs = 0
     ListPaths = sys.argv[4].replace('~',' ').split(' ')
     Add_path = ListPaths[0] #When you save the outputs you save them into the 1st path done by CRAB
+    Add_pathOLDIter = sys.argv[5] #Path of the previous IC Map
     queue = sys.argv[3]
 elif ( RunResub ):
     njobs = int(sys.argv[4])
@@ -134,8 +136,8 @@ for iters in range(nIterations):
         if( storageSite=="T2_CH_CERN" ):
            for Extra_path in ListPaths:
                print 'LETS TRY: ' + Extra_path
-               print 'Getting Good file: ' + "cmsLs " + eosPath + "/" + dirname + "/iter_" + str(iters) + "/" + Extra_path + " | awk '{print $5}' | grep root | grep -v epsilonPlots"
-               getGoodfile = subprocess.Popen(["cmsLs " + eosPath + "/" + dirname + "/iter_" + str(iters) + "/" + Extra_path +  " | awk '{print $5}' | grep root | grep -v epsilonPlots" ], stdout=subprocess.PIPE, shell=True)
+               print 'Getting Good file: ' + "cmsLs " + eosPath + "/" + dirname + "/iter_" + str(iters) + "/" + Extra_path + " | awk '{print $5}' | grep root | grep -v epsilonPlots | grep -v Barrel | grep -v Endcap | grep " + outputFile +"_"
+               getGoodfile = subprocess.Popen(["cmsLs " + eosPath + "/" + dirname + "/iter_" + str(iters) + "/" + Extra_path +  " | awk '{print $5}' | grep root | grep -v epsilonPlots | grep -v Barrel | grep -v Endcap | grep " + outputFile + "_" ], stdout=subprocess.PIPE, shell=True)
                getGoodfile_c = getGoodfile.communicate()
                getGoodfile_str += str(getGoodfile_c)
         if( isOtherT2 and storageSite=="T2_BE_IIHE" ):
@@ -394,11 +396,17 @@ for iters in range(nIterations):
                     if( isOtherT2 and storageSite=="T2_BE_IIHE" and isCRAB ):
                         file.write("#FILE_APPEPENDED\n")
                         file.write("process.fitEpsilon.EpsilonPlotFileName = cms.untracked.string('dcap://maite.iihe.ac.be/pnfs/iihe/cms" + outLFN + "/iter_" + str(iters) + '/' + NameTag + "epsilonPlots.root')\n")
-                        file.write("process.fitEpsilon.calibMapPath = cms.untracked.string('dcap://maite.iihe.ac.be/pnfs/iihe/cms" + outLFN + "/iter_" + str(iters-1) + "/" + Add_path + "/" + NameTag + calibMapName + "')\n")
+                        if(iters==0):
+                           file.write("process.fitEpsilon.calibMapPath = cms.untracked.string('dcap://maite.iihe.ac.be/pnfs/iihe/cms" + outLFN + "/iter_" + str(iters-1) + "/" + Add_path + "/" + NameTag + calibMapName + "')\n")
+                        else:
+                           file.write("process.fitEpsilon.calibMapPath = cms.untracked.string('dcap://maite.iihe.ac.be/pnfs/iihe/cms" + outLFN + "/iter_" + str(iters-1) + "/" + Add_pathOLDIter + "/" + NameTag + calibMapName + "')\n")
                     else:
                         file.write("#FILE_APPEPENDED\n")
                         file.write("process.fitEpsilon.EpsilonPlotFileName = cms.untracked.string('root://eoscms//eos/cms" + eosPath + "/" + dirname + "/iter_" + str(iters) + "/" + Add_path + "/" + NameTag + "epsilonPlots.root')\n")
-                        file.write("process.fitEpsilon.calibMapPath = cms.untracked.string('root://eoscms//eos/cms" + eosPath + "/" + dirname + "/iter_" + str(iters-1) + "/" + Add_path + "/" + NameTag + calibMapName + "')\n")
+                        if(iters==0):
+                           file.write("process.fitEpsilon.calibMapPath = cms.untracked.string('root://eoscms//eos/cms" + eosPath + "/" + dirname + "/iter_" + str(iters-1) + "/" + Add_path + "/" + NameTag + calibMapName + "')\n")
+                        else:
+                           file.write("process.fitEpsilon.calibMapPath = cms.untracked.string('root://eoscms//eos/cms" + eosPath + "/" + dirname + "/iter_" + str(iters-1) + "/" + Add_pathOLDIter + "/" + NameTag + calibMapName + "')\n")
             #Correct path into the src
             logpath = pwd + "/" + dirname + "/log/" + "fitEpsilonPlot_EB_" + str(inteb) + "_iter_" + str(iters) + ".log"
             if( isOtherT2 and storageSite=="T2_BE_IIHE" and isCRAB ):
@@ -446,11 +454,17 @@ for iters in range(nIterations):
                     if( isOtherT2 and storageSite=="T2_BE_IIHE" and isCRAB ):
                         file.write("#FILE_APPEPENDED\n")
                         file.write("process.fitEpsilon.EpsilonPlotFileName = cms.untracked.string('dcap://maite.iihe.ac.be/pnfs/iihe/cms" + outLFN + "/iter_" + str(iters) + '/' + NameTag + "epsilonPlots.root')\n")
-                        file.write("process.fitEpsilon.calibMapPath = cms.untracked.string('dcap://maite.iihe.ac.be/pnfs/iihe/cms" + outLFN + "/iter_" + str(iters-1) + "/" + Add_path + "/" + NameTag + calibMapName + "')\n")
+                        if(iters==0):
+                           file.write("process.fitEpsilon.calibMapPath = cms.untracked.string('dcap://maite.iihe.ac.be/pnfs/iihe/cms" + outLFN + "/iter_" + str(iters-1) + "/" + Add_path + "/" + NameTag + calibMapName + "')\n")
+                        else:
+                           file.write("process.fitEpsilon.calibMapPath = cms.untracked.string('dcap://maite.iihe.ac.be/pnfs/iihe/cms" + outLFN + "/iter_" + str(iters-1) + "/" + Add_pathOLDIter + "/" + NameTag + calibMapName + "')\n")
                     else:
                         file.write("#FILE_APPEPENDED\n")
                         file.write("process.fitEpsilon.EpsilonPlotFileName = cms.untracked.string('root://eoscms//eos/cms" + eosPath + "/" + dirname + "/iter_" + str(iters) + "/" + Add_path + "/" + NameTag + "epsilonPlots.root')\n")
-                        file.write("process.fitEpsilon.calibMapPath = cms.untracked.string('root://eoscms//eos/cms" + eosPath + "/" + dirname + "/iter_" + str(iters-1) + "/" + Add_path + "/" + NameTag + calibMapName + "')\n")
+                        if(iters==0):
+                           file.write("process.fitEpsilon.calibMapPath = cms.untracked.string('root://eoscms//eos/cms" + eosPath + "/" + dirname + "/iter_" + str(iters-1) + "/" + Add_path + "/" + NameTag + calibMapName + "')\n")
+                        else:
+                           file.write("process.fitEpsilon.calibMapPath = cms.untracked.string('root://eoscms//eos/cms" + eosPath + "/" + dirname + "/iter_" + str(iters-1) + "/" + Add_pathOLDIter + "/" + NameTag + calibMapName + "')\n")
             #Correct path into the src
             logpath = pwd + "/" + dirname + "/log/" + "fitEpsilonPlot_EE_" + str(inte) + "_iter_" + str(iters) + ".log"
             if( isOtherT2 and storageSite=="T2_BE_IIHE" and isCRAB ):

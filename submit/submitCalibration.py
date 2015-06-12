@@ -251,9 +251,9 @@ for iter in range(nIterations):
         destination_s = eosPath + '/' + dirname + '/iter_' + str(iter) + "/" + NameTag + "Endcap_" + str(nFit) + "_" + calibMapName
         logpath = pwd + "/" + dirname + "/log/" + "fitEpsilonPlot_EE_" + str(nFit) + "_iter_" + str(iter) + ".log"
         if( isOtherT2 and storageSite=="T2_BE_IIHE" and isCRAB ):
-            printSubmitFitSrc(fitSrc_f, fit_cfg_n, "/tmp/" + NameTag + "Endcap_" + str(nFit)+ "_" + calibMapName, destination_s, pwd, logpath)
-        else:
             printSubmitFitSrc(fitSrc_f, fit_cfg_n, "$TMPDIR/" + NameTag + "Endcap_" + str(nFit)+ "_" + calibMapName, destination_s, pwd, logpath)
+        else:
+            printSubmitFitSrc(fitSrc_f, fit_cfg_n, "/tmp/" + NameTag + "Endcap_" + str(nFit)+ "_" + calibMapName, destination_s, pwd, logpath)
         fitSrc_f.close()
 
         # make the source file executable
