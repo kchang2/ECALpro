@@ -52,7 +52,7 @@ class FitEpsilonPlot : public edm::EDAnalyzer {
       void IterativeFit(TH1F* h, TF1 & ffit); 
       void deleteEpsilonPlot(TH1F **h, int size);
 
-      Pi0FitResult FitMassPeakRooFit(TH1F* h,double xlo, double xhi, uint32_t HistoIndex, int ngaus=1, FitMode mode=Pi0EB, int niter=0, bool is_2011_=true);
+      Pi0FitResult FitMassPeakRooFit(TH1F* h,double xlo, double xhi, uint32_t HistoIndex, int ngaus=1, FitMode mode=Pi0EB, int niter=0, bool isNot_2010_=true);
 
       // ----------member data ---------------------------
 
@@ -71,7 +71,7 @@ class FitEpsilonPlot : public edm::EDAnalyzer {
       std::string Barrel_orEndcap_; 
 
       std::string EEoEB_; 
-      bool is_2011_; 
+      bool isNot_2010_; 
       bool Are_pi0_; 
       bool StoreForTest_; 
       int inRangeFit_; 

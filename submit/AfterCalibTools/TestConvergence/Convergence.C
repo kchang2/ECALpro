@@ -35,6 +35,7 @@
 #include "TFormula.h"
 #include "TGraph.h"
 #include "TCanvas.h"
+#include "TStyle.h"
 
 using std::cout;
 using std::endl;
@@ -116,7 +117,8 @@ void Convergence( string Path_0, string Path, int nIter, string Tag, int nJump=1
 		}
 
 		//Histo
-		TH1F *h1; h1 =new TH1F("h1","",100,hmean-3*hrms,hmean+3*hrms);
+		//TH1F *h1; h1 =new TH1F("h1","",1000,hmean-9*hrms,hmean+9*hrms);
+		TH1F *h1; h1 =new TH1F("h1","",2000,-0.1,0.1);
 
 		//Loop
 		Long64_t nentries = Tree->GetEntriesFast();
@@ -124,8 +126,8 @@ void Convergence( string Path_0, string Path, int nIter, string Tag, int nJump=1
 		    Tree->GetEntry(iEntry);
 		    Tree1->GetEntry(iEntry);
 		    if( coeff1!=1. && coeff!=1. && coeff1!=coeff && coeff!=0 && coeff1!=0 && Ndof>10 && Ndof1>10){
-			  if(isEB==0 )                              h1->Fill((coeff1-coeff));
-			  if(isEB==1 /*&& coeff>0.97 && coeff1>0.97*/ ) h1->Fill((coeff1-coeff));
+			  if(isEB==0 ) h1->Fill((coeff1-coeff));
+			  if(isEB==1 ) h1->Fill((coeff1-coeff));
 		    }
 
 		    if(i==nIter-1){

@@ -227,6 +227,9 @@ class FillEpsilonPlot : public edm::EDAnalyzer {
       TH2F *entries_EEp;
       TH2F *entries_EEm;
       TH2F *entries_EB;
+      TH2F *Occupancy_EEp;
+      TH2F *Occupancy_EEm;
+      TH2F *Occupancy_EB;
       TH2F *pi0MassVsIetaEB;
       TH2F *pi0MassVsETEB;
       bool useMassInsteadOfEpsilon_;

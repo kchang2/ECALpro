@@ -864,7 +864,7 @@ for iters in range(nIterations):
     if( isOtherT2 and storageSite=="T2_BE_IIHE" and isCRAB ):
         stage_s_fin = 'srmcp file:///$TMPDIR//' + NameTag + calibMapName + ' srm://maite.iihe.ac.be:8443/pnfs/iihe/cms' + outLFN + "/iter_" + str(iters) + "/" + NameTag + calibMapName
     else:
-        stage_s_fin = 'cmsStage /tmp/' + NameTag + calibMapName + ' ' + eosPath + '/' + dirname + '/iter_' + str(iters) + "/" + Add_path + "/" + NameTag + calibMapName
+        stage_s_fin = 'cmsStage -f /tmp/' + NameTag + calibMapName + ' ' + eosPath + '/' + dirname + '/iter_' + str(iters) + "/" + Add_path + "/" + NameTag + calibMapName
     print stage_s_fin
     stageCalibFile = subprocess.Popen([stage_s_fin], stdout=subprocess.PIPE, shell=True);
     print stageCalibFile.communicate()

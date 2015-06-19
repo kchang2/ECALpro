@@ -11,29 +11,51 @@ def printFillCfg1( outputfile ):
     outputfile.write('process = cms.Process("analyzerFillEpsilon")\n')
     outputfile.write('process.load("FWCore.MessageService.MessageLogger_cfi")\n\n')
     outputfile.write('process.load("Configuration.Geometry.GeometryIdeal_cff")\n')
-    outputfile.write('process.load("Configuration.StandardSequences.FrontierConditions_GlobalTag_cff")\n')
+    if(globaltag_New):
+       outputfile.write('process.load("Configuration.StandardSequences.FrontierConditions_GlobalTag_condDBv2_cff")\n')
+    else:
+       outputfile.write('process.load("Configuration.StandardSequences.FrontierConditions_GlobalTag_cff")\n')
     outputfile.write("process.GlobalTag.globaltag = '" + globaltag + "'\n")
     #From DIGI
     if (FROMDIGI):
+        outputfile.write("#DUMMY RECHIT\n")
+        outputfile.write("process.dummyHits = cms.EDProducer('DummyRechitDigis',\n")
+        outputfile.write("                                     doDigi = cms.untracked.bool(True),\n")
+        outputfile.write("                                     # rechits\n")                                                                                                
+        outputfile.write("                                     barrelHitProducer      = cms.InputTag('hltAlCaPi0EBUncalibrator','pi0EcalRecHitsEB' ,'HLT'),\n")
+        outputfile.write("                                     endcapHitProducer      = cms.InputTag('hltAlCaPi0EEUncalibrator','pi0EcalRecHitsEE' ,'HLT'),\n")
+        outputfile.write("                                     barrelRecHitCollection = cms.untracked.string('dummyBarrelRechits'),\n")
+        outputfile.write("                                     endcapRecHitCollection = cms.untracked.string('dummyEndcapRechits'),\n")
+        outputfile.write("                                     # digis\n")                                                                                                                               
+        outputfile.write("                                     barrelDigis            = cms." + EBdigi + ",\n")
+        outputfile.write("                                     endcapDigis            = cms." + EBdigi + ",\n")
+        outputfile.write("                                     barrelDigiCollection   = cms.untracked.string('dummyBarrelDigis'),\n")
+        outputfile.write("                                     endcapDigiCollection   = cms.untracked.string('dummyEndcapDigis'))\n")
+        outputfile.write("\n")
         outputfile.write("#RAW to DIGI'\n")
         outputfile.write("#https://github.com/cms-sw/cmssw/blob/CMSSW_7_5_X/RecoLocalCalo/EcalRecProducers/test/testMultipleEcalRecoLocal_cfg.py\n")
         outputfile.write("#process.load('Configuration.StandardSequences.RawToDigi_cff')\n")
         outputfile.write("#process.raw2digi_step = cms.Sequence(process.RawToDigi)\n")
         outputfile.write("#DIGI to UNCALIB\n")
-        outputfile.write("#https://github.com/cms-sw/cmssw/blob/CMSSW_7_5_X/RecoLocalCalo/EcalRecProducers/test/testMultipleEcalRecoLocal_cfg.py\n")
         outputfile.write("process.load('Configuration.StandardSequences.Reconstruction_cff')\n")
-        outputfile.write("import RecoLocalCalo.EcalRecProducers.ecalMultiFitUncalibRecHit_cfi\n")
-        outputfile.write("process.ecalMultiFitUncalibRecHit =  RecoLocalCalo.EcalRecProducers.ecalMultiFitUncalibRecHit_cfi.ecalMultiFitUncalibRecHit.clone()\n")
-        if( DigiCustomization ):
-            outputfile.write("process.ecalMultiFitUncalibRecHit.algoPSet.useLumiInfoRunHeader = cms.bool( False ) # To read the conditions from the header\n") 
-        if( is50ns and DigiCustomization ):
-            outputfile.write("process.ecalMultiFitUncalibRecHit.algoPSet.activeBXs = cms.vint32(-4,-2,0,2,4) #Are 10 (-5-5). For 50ns is (-4,-2,0,2,4) #No .algoPSet. in old releases\n")
-        if( not is50ns and DigiCustomization ):
-            outputfile.write("process.ecalMultiFitUncalibRecHit.algoPSet.activeBXs = cms.vint32(-5,-4,-3,-2,-1,0,1,2,3,4) #Are 10 (-5-5). For 50ns is (-4,-2,0,2,4) #No .algoPSet. in old releases\n")
-        outputfile.write("process.ecalMultiFitUncalibRecHit.EBdigiCollection = cms." + EBdigi + "\n")
-        outputfile.write("process.ecalMultiFitUncalibRecHit.EEdigiCollection = cms." + EEdigi + "\n")
+        if(MULTIFIT):
+           outputfile.write("import RecoLocalCalo.EcalRecProducers.ecalMultiFitUncalibRecHit_cfi\n")
+           outputfile.write("process.ecalMultiFitUncalibRecHit =  RecoLocalCalo.EcalRecProducers.ecalMultiFitUncalibRecHit_cfi.ecalMultiFitUncalibRecHit.clone()\n")
+           if( DigiCustomization ):
+               outputfile.write("process.ecalMultiFitUncalibRecHit.algoPSet.useLumiInfoRunHeader = cms.bool( False ) # To read the conditions from the header\n") 
+           if( is50ns and DigiCustomization ):
+               outputfile.write("process.ecalMultiFitUncalibRecHit.algoPSet.activeBXs = cms.vint32(-4,-2,0,2,4) #Are 10 (-5-5). For 50ns is (-4,-2,0,2,4) #No .algoPSet. in old releases\n")
+           if( not is50ns and DigiCustomization ):
+               outputfile.write("process.ecalMultiFitUncalibRecHit.algoPSet.activeBXs = cms.vint32(-5,-4,-3,-2,-1,0,1,2,3,4) #Are 10 (-5-5). For 50ns is (-4,-2,0,2,4) #No .algoPSet. in old releases\n")
+           outputfile.write("process.ecalMultiFitUncalibRecHit.EBdigiCollection = cms.InputTag('dummyHits','dummyBarrelDigis','analyzerFillEpsilon')\n")
+           outputfile.write("process.ecalMultiFitUncalibRecHit.EEdigiCollection = cms.InputTag('dummyHits','dummyEndcapDigis','analyzerFillEpsilon')\n")
+        if(WEIGHTS):
+           outputfile.write("import RecoLocalCalo.EcalRecProducers.ecalGlobalUncalibRecHit_cfi\n")
+           outputfile.write("process.load('RecoLocalCalo.EcalRecProducers.ecalGlobalUncalibRecHit_cfi')\n")
+           outputfile.write("process.ecalweight =  RecoLocalCalo.EcalRecProducers.ecalGlobalUncalibRecHit_cfi.ecalGlobalUncalibRecHit.clone()\n")
+           outputfile.write("process.ecalweight.EBdigiCollection = cms.InputTag('dummyHits','dummyBarrelDigis','analyzerFillEpsilon')\n")
+           outputfile.write("process.ecalweight.EEdigiCollection = cms.InputTag('dummyHits','dummyBarrelDigis','analyzerFillEpsilon')\n")
         outputfile.write("#UNCALIB to CALIB\n")
-        outputfile.write("#https://github.com/cms-sw/cmssw/blob/CMSSW_7_4_X/RecoLocalCalo/EcalRecProducers/python/ecalLocalRecoSequence_cff.py\n")
         outputfile.write("from RecoLocalCalo.EcalRecProducers.ecalRecHit_cfi import *\n")
         outputfile.write("process.ecalDetIdToBeRecovered =  RecoLocalCalo.EcalRecProducers.ecalDetIdToBeRecovered_cfi.ecalDetIdToBeRecovered.clone()\n")
         outputfile.write("process.ecalRecHit.killDeadChannels = cms.bool( False )\n")
@@ -252,7 +274,11 @@ def printFillCfg2( outputfile, pwd , iteration, outputDir, ijob ):
     outputfile.write("    print 'LASER '+str(process.ecalPi0ReCorrected.doLaserCorrections)\n")
     outputfile.write("    process.p *= process.ecalPi0ReCorrected\n")
     if (FROMDIGI):
-        outputfile.write("process.p *= process.ecalMultiFitUncalibRecHit\n")
+        outputfile.write("process.p *= process.dummyHits\n")
+        if(MULTIFIT):
+           outputfile.write("process.p *= process.ecalMultiFitUncalibRecHit\n")
+        if (WEIGHTS):
+           outputfile.write("process.p *= ecalweight\n")
         outputfile.write("process.p *= process.ecalLocalRecoSequence\n")
     outputfile.write("process.p *= process.analyzerFillEpsilon\n")
 
@@ -273,7 +299,7 @@ def printFitCfg( outputfile, iteration, outputDir, nIn, nFin, EBorEE, nFit ):
     outputfile.write("process.fitEpsilon.NInFit = cms.untracked.int32(" + str(nIn) + ")\n")
     outputfile.write("process.fitEpsilon.NFinFit = cms.untracked.int32(" + str(nFin) + ")\n")
     outputfile.write("process.fitEpsilon.EEorEB = cms.untracked.string('" + EBorEE + "')\n")
-    outputfile.write("process.fitEpsilon.is_2011 = cms.untracked.bool(" + is_2011 + ")\n")
+    outputfile.write("process.fitEpsilon.isNot_2010 = cms.untracked.bool(" + isNot_2010 + ")\n")
     if(Are_pi0):
         outputfile.write("process.fitEpsilon.Are_pi0 = cms.untracked.bool( True )\n")
     else:
@@ -474,9 +500,16 @@ def printParallelHaddFAST(outputfile, outFile, listReduced, destination, pwd, nu
         outputfile.write("   SUBSTRING=`echo ${file} | awk -F / '{ print $14 }'`\n")
     else:
         outputfile.write("   SUBSTRING=`echo ${file} | awk -F / '{ print $9 }'`\n")
-    outputfile.write("   echo \"-> FastHadd encode -o /tmp/${SUBSTRING}.pb /tmp/${SUBSTRING}\"\n")
-    outputfile.write("   fastHadd encode -o /tmp/${SUBSTRING}.pb /tmp/${SUBSTRING}\n")
-    outputfile.write("   filesHadd=\"$filesHadd /tmp/${SUBSTRING}.pb\"\n")
+    outputfile.write("   echo \"-> outEncode=$( { fastHadd encode -o /tmp/${SUBSTRING}.pb /tmp/${SUBSTRING}; } 2>&1 )\"\n")
+    outputfile.write("   outEncode=$( { fastHadd encode -o /tmp/${SUBSTRING}.pb /tmp/${SUBSTRING}; } 2>&1 )\n")
+    outputfile.write('   echo "outEncode is: $outEncode"\n')
+    outputfile.write('   if [[ "$outEncode" =~ "DEBUG: Encoding" ]]\n')
+    outputfile.write('   then\n')
+    outputfile.write('      if [[ ! "$outEncode" =~ "Error" ]]\n')
+    outputfile.write('      then\n')
+    outputfile.write('        filesHadd="$filesHadd /tmp/${SUBSTRING}.pb"\n')
+    outputfile.write("      fi\n")
+    outputfile.write("   fi\n")
     outputfile.write("done\n")
     outputfile.write("echo \"fastHadd add -o /tmp/" + NameTag + "FinalFile.pb $filesHadd\"\n")
     outputfile.write("fastHadd add -o /tmp/" + NameTag + "FinalFile.pb $filesHadd\n")
@@ -509,9 +542,16 @@ def printFinalHaddFAST(outputfile, listReduced, destination, pwd):
         outputfile.write("   SUBSTRING=`echo ${file} | awk -F / '{ print $14 }'`\n")
     else:
         outputfile.write("   SUBSTRING=`echo ${file} | awk -F / '{ print $9 }'`\n")
-    outputfile.write("   echo \"-> FastHadd encode -o /tmp/${SUBSTRING}.pb /tmp/${SUBSTRING}\"\n")
-    outputfile.write("   fastHadd encode -o /tmp/${SUBSTRING}.pb /tmp/${SUBSTRING}\n")
-    outputfile.write("   filesHadd=\"$filesHadd /tmp/${SUBSTRING}.pb\"\n")
+    outputfile.write("   echo \"-> outEncode=$( { fastHadd encode -o /tmp/${SUBSTRING}.pb /tmp/${SUBSTRING}; } 2>&1 )\"\n")
+    outputfile.write("   outEncode=$( { fastHadd encode -o /tmp/${SUBSTRING}.pb /tmp/${SUBSTRING}; } 2>&1 )\n")
+    outputfile.write('   echo "outEncode is: $outEncode"\n')
+    outputfile.write('   if [[ "$outEncode" =~ "DEBUG: Encoding" ]]\n')
+    outputfile.write('   then\n')
+    outputfile.write('      if [[ ! "$outEncode" =~ "Error" ]]\n')
+    outputfile.write('      then\n')
+    outputfile.write('        filesHadd="$filesHadd /tmp/${SUBSTRING}.pb"\n')
+    outputfile.write("      fi\n")
+    outputfile.write("   fi\n")
     outputfile.write("done\n")
     outputfile.write("echo \"fastHadd add -o /tmp/" + NameTag + "FinalFile.pb $filesHadd\"\n")
     outputfile.write("fastHadd add -o /tmp/" + NameTag + "FinalFile.pb $filesHadd\n")

@@ -78,7 +78,7 @@ FitEpsilonPlot::FitEpsilonPlot(const edm::ParameterSet& iConfig)
     inRangeFit_ = iConfig.getUntrackedParameter<int>("NInFit");
     finRangeFit_ = iConfig.getUntrackedParameter<int>("NFinFit");    
     EEoEB_ = iConfig.getUntrackedParameter<std::string>("EEorEB");
-    is_2011_ = iConfig.getUntrackedParameter<bool>("is_2011");
+    isNot_2010_ = iConfig.getUntrackedParameter<bool>("isNot_2010");
     Are_pi0_ = iConfig.getUntrackedParameter<bool>("Are_pi0");
     StoreForTest_ = iConfig.getUntrackedParameter<bool>("StoreForTest","false");
     Barrel_orEndcap_ = iConfig.getUntrackedParameter<std::string>("Barrel_orEndcap");
@@ -470,18 +470,18 @@ FitEpsilonPlot::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
 		    double integral = epsilon_EB_h[j]->Integral(iMin, iMax);  
 		    if(integral>60.)
 		    {
-			  Pi0FitResult fitres = FitMassPeakRooFit( epsilon_EB_h[j], Are_pi0_? 0.08:0.4, Are_pi0_? 0.21:0.65, j, 1, Pi0EB, 0, is_2011_); //0.05-0.3
+			  Pi0FitResult fitres = FitMassPeakRooFit( epsilon_EB_h[j], Are_pi0_? 0.08:0.4, Are_pi0_? 0.21:0.65, j, 1, Pi0EB, 0, isNot_2010_); //0.05-0.3
 			  RooRealVar* mean_fitresult = (RooRealVar*)(((fitres.res)->floatParsFinal()).find("mean"));
 			  mean = mean_fitresult->getVal();
-cout<<"MEAN: "<<mean<<endl;
 			  float r2 = mean/(Are_pi0_? PI0MASS:ETAMASS);
 			  r2 = r2*r2;
-cout<<"test: "<<fitres.SoB<<">(is_2011_ ? 0.04:0.1) "<<(fitres.chi2/fitres.dof)<<" < 0.049 "<<fabs(mean-0.15)<<" >0.0000001) "<<endl;
-			  if( fitres.SoB>(is_2011_ ? 0.04:0.1) && (fitres.chi2/fitres.dof)< 0.049 && fabs(mean-0.15)>0.0000001) mean = 0.5 * ( r2 - 1. );
-			  else                                                                                                  mean = 0.;
+			  //cout<<"EBMEAN::"<<j<<":"<<mean<<" Saved if: "<<fitres.SoB<<">(isNot_2010_ ? 0.04:0.1) "<<(fitres.chi2/fitres.dof)<<" < 0.2 "<<fabs(mean-0.15)<<" >0.0000001) "<<endl;
+			  if( fitres.SoB>(isNot_2010_ ? 0.04:0.1) && (fitres.chi2/fitres.dof)< 0.5 && fabs(mean-0.15)>0.0000001) mean = 0.5 * ( r2 - 1. );
+			  else                                                                                               {mean = 0.;cout<<"NOOOOOOO"<<endl;}
 		    }
-		    else
-			  mean = 0.;
+		    else{
+			  mean = 0.; //cout<<"EB NOOOOOOO STAT"<<endl;
+		    }
 		}
 
 
@@ -545,17 +545,18 @@ cout<<"test: "<<fitres.SoB<<">(is_2011_ ? 0.04:0.1) "<<(fitres.chi2/fitres.dof)<
 
 		    if(integral>70.)
 		    {
-			  Pi0FitResult fitres = FitMassPeakRooFit( epsilon_EE_h[jR], Are_pi0_? 0.08:0.4, Are_pi0_? 0.25:0.65, jR, 1, Pi0EE, 0, is_2011_);//0.05-0.3
+			  Pi0FitResult fitres = FitMassPeakRooFit( epsilon_EE_h[jR], Are_pi0_? 0.08:0.4, Are_pi0_? 0.25:0.65, jR, 1, Pi0EE, 0, isNot_2010_);//0.05-0.3
 			  RooRealVar* mean_fitresult = (RooRealVar*)(((fitres.res)->floatParsFinal()).find("mean"));
 			  mean = mean_fitresult->getVal();
 			  float r2 = mean/(Are_pi0_? PI0MASS:ETAMASS);
 			  r2 = r2*r2;
-			  if( (fitres.chi2/fitres.dof)<0.3 && fitres.SoB>(is_2011_? 0.07:0.35) && fabs(mean-0.14)>0.0000001 ) mean = 0.5 * ( r2 - 1. );
-			  else                                                                                                mean = 0.;
+			  //cout<<"EEMEAN::"<<jR<<":"<<mean<<" Saved if: "<<fitres.SoB<<">0.3 "<<(fitres.chi2/fitres.dof)<<" < (isNot_2010_? 0.07:0.35) "<<fabs(mean-0.14)<<" >0.0000001) "<<endl;
+			  if( (fitres.chi2/fitres.dof)<0.3 && fitres.SoB>(isNot_2010_? 0.07:0.35) && fabs(mean-0.14)>0.0000001 ) mean = 0.5 * ( r2 - 1. );
+			  else                                                                                              { mean = 0.; cout<<"NOOOOOOO"<<endl;}
 		    }
 		    else
 		    {
-			  mean = 0.;
+			  mean = 0.; //cout<<"EE NOOOOOOO STAT"<<endl;
 		    }
 		}
 
@@ -590,7 +591,6 @@ FitEpsilonPlot::IterativeFit(TH1F* h, TF1 & ffit)
 
     for(int iter=0; iter< iterMax && chi2>5.; ++iter) 
     {
-	  cout<<"par 0  "<<par[0]<<"  par 1  "<<par[1]<<"  par 2  "<<par[2]<<endl; //@@
 	  ffit.SetParameters(par[0],par[1], par[2]);
 
 	  h->Fit(&ffit,"q","",xmin,xmax);
@@ -609,7 +609,7 @@ FitEpsilonPlot::IterativeFit(TH1F* h, TF1 & ffit)
 
 
 //-----------------------------------------------------------------------------------
-Pi0FitResult FitEpsilonPlot::FitMassPeakRooFit(TH1F* h, double xlo, double xhi,  uint32_t HistoIndex, int ngaus, FitMode mode, int niter, bool is_2011_) 
+Pi0FitResult FitEpsilonPlot::FitMassPeakRooFit(TH1F* h, double xlo, double xhi,  uint32_t HistoIndex, int ngaus, FitMode mode, int niter, bool isNot_2010_) 
 {
     //-----------------------------------------------------------------------------------
 
@@ -705,7 +705,8 @@ Pi0FitResult FitEpsilonPlot::FitMassPeakRooFit(TH1F* h, double xlo, double xhi, 
     else if(ngaus==2) model = &model2;
 
 
-    RooNLLVar nll("nll","log likelihood var",*model,dh, Extended());
+    RooNLLVar nll("nll","log likelihood var",*model,dh, RooFit::Extended(true));
+    //RooAbsReal * nll = model->createNLL(dh); //suggetsed way, taht should be the same
     RooMinuit m(nll);
     m.setVerbose(kFALSE);
     //m.setVerbose(kTRUE);
@@ -740,9 +741,6 @@ Pi0FitResult FitEpsilonPlot::FitMassPeakRooFit(TH1F* h, double xlo, double xhi, 
     pi0res.SoBerr =  pi0res.SoB*sqrt( pow(pi0res.Serr/pi0res.S,2) + 
 		pow(pi0res.Berr/pi0res.B,2) ) ;
     pi0res.dof = ndof;
-
-    //cout<<"Param Sig: "<<HistoIndex<<") "<<gaus.getNorm() <<"  "<<mean.getVal()<<"  "<<sigma.getVal()<<endl;
-    //cout<<"Param Bkg: "<<HistoIndex<<") "<<bkg.getNorm() <<"  "<<cb0.getVal()<<"  "<<cb1.getVal()<<"  "<<cb2.getVal()<<"  "<<cb3.getVal()<<endl;
 
     RooPlot*  xframe = x.frame(h->GetNbinsX());
     xframe->SetTitle(h->GetTitle());
@@ -820,9 +818,9 @@ Pi0FitResult FitEpsilonPlot::FitMassPeakRooFit(TH1F* h, double xlo, double xhi, 
 
     Pi0FitResult fitres = pi0res;
     if(mode==Pi0EB && ( xframe->chiSquare()/pi0res.dof>0.35 || pi0res.SoB<0.6 || fabs(mean.getVal()-(Are_pi0_? 0.150:0.62))<0.0000001 ) ){
-	  if(niter==0) fitres = FitMassPeakRooFit( h, xlo, xhi, HistoIndex, ngaus, mode, 1, is_2011_);
-	  if(niter==1) fitres = FitMassPeakRooFit( h, xlo, xhi, HistoIndex, ngaus, mode, 2, is_2011_);
-	  if(niter==2) fitres = FitMassPeakRooFit( h, xlo, xhi, HistoIndex, ngaus, mode, 3, is_2011_);
+	  if(niter==0) fitres = FitMassPeakRooFit( h, xlo, xhi, HistoIndex, ngaus, mode, 1, isNot_2010_);
+	  if(niter==1) fitres = FitMassPeakRooFit( h, xlo, xhi, HistoIndex, ngaus, mode, 2, isNot_2010_);
+	  if(niter==2) fitres = FitMassPeakRooFit( h, xlo, xhi, HistoIndex, ngaus, mode, 3, isNot_2010_);
     }
     if(StoreForTest_ && niter==0){
 	  std::stringstream ind;

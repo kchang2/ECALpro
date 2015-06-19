@@ -283,6 +283,9 @@ FillEpsilonPlot::FillEpsilonPlot(const edm::ParameterSet& iConfig)
     entries_EEp   = new TH2F("entries_EEp","entries_EEp",101,-0.5,100.5,101,-0.5,100.5);
     entries_EEm   = new TH2F("entries_EEm","entries_EEm",101,-0.5,100.5,101,-0.5,100.5);
     entries_EB    = new TH2F("entries_EB","entries_EB",2*EBDetId::MAX_IETA+1,-EBDetId::MAX_IETA-0.5,EBDetId::MAX_IETA+0.5,EBDetId::MAX_IPHI, EBDetId::MIN_IPHI-0.5, EBDetId::MAX_IPHI+0.5 );
+    Occupancy_EEp = new TH2F("Occupancy_EEp","Occupancy_EEp",101,-0.5,100.5,101,-0.5,100.5);
+    Occupancy_EEm = new TH2F("Occupancy_EEm","Occupancy_EEm",101,-0.5,100.5,101,-0.5,100.5);
+    Occupancy_EB  = new TH2F("Occupancy_EB","Occupancy_EB",2*EBDetId::MAX_IETA+1,-EBDetId::MAX_IETA-0.5,EBDetId::MAX_IETA+0.5,EBDetId::MAX_IPHI, EBDetId::MIN_IPHI-0.5, EBDetId::MAX_IPHI+0.5 );
 
 
     pi0MassVsIetaEB = new TH2F("pi0MassVsIetaEB","#pi^{0} mass vs i#eta",85,0.5,85.5,120,Are_pi0_? 0.:0.3, Are_pi0_? 0.3:0.8);
@@ -402,6 +405,9 @@ FillEpsilonPlot::~FillEpsilonPlot()
   delete entries_EEp;
   delete entries_EEm;
   delete entries_EB;
+  delete Occupancy_EEp;
+  delete Occupancy_EEm;
+  delete Occupancy_EB;
   delete pi0MassVsIetaEB;
   delete pi0MassVsETEB;
   delete triggerComposition;
@@ -570,6 +576,8 @@ void FillEpsilonPlot::fillEBClusters(std::vector< CaloCluster > & ebclusters, co
   //bool founded=false;
   for(EBRecHitCollection::const_iterator itb= ebHandle->begin(); itb != ebHandle->end(); ++itb, ++dc) 
   {
+    EBDetId tmp_id(itb->id());
+    Occupancy_EB->Fill(tmp_id.ieta(), tmp_id.iphi());
     if(itb->energy() > EB_Seed_E_)  ebseeds.push_back( *itb );
     ////Preselection
     //if(itb->energy() > 0.200-0.200*(28.3/100)) founded=true;
@@ -811,6 +819,8 @@ void FillEpsilonPlot::fillEEClusters(std::vector< CaloCluster > & eseeclusters, 
   //bool found=false;
   for(EERecHitCollection::const_iterator ite= eeHandle->begin(); ite != eeHandle->end(); ++ite, ++dc) {
     EEDetId idXtal( ite->id() );
+    if(idXtal.zside()<0) Occupancy_EEm->Fill(idXtal.ix(),idXtal.iy()); 
+    if(idXtal.zside()>0) Occupancy_EEp->Fill(idXtal.ix(),idXtal.iy()); 
     GlobalPoint posThis;
     if( GeometryFromFile_ ) posThis = geom_->getPosition(idXtal,0.);
     else{
@@ -1864,7 +1874,9 @@ bool FillEpsilonPlot::GetHLTResults(const edm::Event& iEvent, std::string s){
   for (int i = 0 ; i != hltCount; ++i) {
     TString hltName_tstr(HLTNames.triggerName(i));
     std::string hltName_str(HLTNames.triggerName(i));
+    //cout<<"hltName_tstr is: "<<hltName_tstr<<" and reg is: "<<s<<endl;
     if ( hltName_tstr.Contains(reg) ){          // If reg contains * ir will say always True. So you ask for ->accept(i) to the first HLTName always.
+	//cout<<"hltName_tstr.Contains(reg) give: "<<hltTriggerResultHandle->accept(i)<<endl;
 	return hltTriggerResultHandle->accept(i); // False or True depending if it fired.
     }
   }
@@ -1950,6 +1962,9 @@ void FillEpsilonPlot::endJob(){
   entries_EEp->Write();
   entries_EEm->Write();
   entries_EB->Write();
+  Occupancy_EEp->Write();
+  Occupancy_EEm->Write();
+  Occupancy_EB->Write();
   pi0MassVsIetaEB->Write();
   pi0MassVsETEB->Write();
   triggerComposition->Write();

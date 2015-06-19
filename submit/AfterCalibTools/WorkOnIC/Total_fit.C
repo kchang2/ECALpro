@@ -84,10 +84,10 @@ void Total_fit( TString File, TString Hname, bool RunOnAll, bool isEB=true, bool
     if( ! RunOnAll ) name = Hname;
     TH1F *h     = (TH1F*) fin->Get( name.Data() );
     h->SetTitle("");
-    TString outName = "MYFIT_2015A/" + EBEE + "_iR_" + TString(ind.str()) + "_" + isPi0 + ".png";
-    TString outName1 = "MYFIT_2015A/" + EBEE + "_iR_" + TString(ind.str()) + "_" + isPi0 +".pdf";
-    TString outName2 = "MYFIT_2015A/" + EBEE + "_iR_" + TString(ind.str()) + "_" + isPi0  +".C";
-    TString outName3 = "MYFIT_2015A/" + EBEE + "_iR_" + TString(ind.str()) + "_" + isPi0  +".root";
+    TString outName = "Comp_2015A/" + EBEE + "_iR_" + TString(ind.str()) + "_" + isPi0 + ".png";
+    TString outName1 = "Comp_2015A/" + EBEE + "_iR_" + TString(ind.str()) + "_" + isPi0 +".pdf";
+    TString outName2 = "Comp_2015A/" + EBEE + "_iR_" + TString(ind.str()) + "_" + isPi0  +".C";
+    TString outName3 = "Comp_2015A/" + EBEE + "_iR_" + TString(ind.str()) + "_" + isPi0  +".root";
 
     //Fit Method
     int ngaus=1; //1: simple Gaussian, 2: two Gaussian
@@ -155,27 +155,28 @@ void Total_fit( TString File, TString Hname, bool RunOnAll, bool isEB=true, bool
     if(ngaus==1)      model = &model1;
     else if(ngaus==2) model = &model2;
 
-    RooNLLVar nll("nll","log likelihood var",*model,dh);
+    RooNLLVar nll("nll","log likelihood var",*model,dh,RooFit::Extended(true));//RooFit::Extended(true) fundamental for right ormalization
+    //RooAbsReal * nll = model->createNLL(dh); Suggested way
     RooMinuit m(nll);
     m.setVerbose(kFALSE);
     m.migrad();
     //RooFitResult* res = m.save() ;
 
-    x.setRange("sobRange",mean.getVal()-3.*sigma.getVal(), mean.getVal()+3.*sigma.getVal());
+    x.setRange("sobRange",mean.getVal()-2.*sigma.getVal(), mean.getVal()+2.*sigma.getVal());
     RooAbsReal* integralSig = gaus.createIntegral(x,NormSet(x),Range("sobRange"));
     RooAbsReal* integralBkg = bkg.createIntegral(x,NormSet(x),Range("sobRange"));
 
     RooChi2Var chi2("chi2","chi2 var",*model,dh, true);
     //int ndof = h->GetNbinsX() - res->floatParsFinal().getSize();
-    x.setRange("sobRange",mean.getVal()-3.*sigma.getVal(), mean.getVal()+3.*sigma.getVal());
+    x.setRange("sobRange",mean.getVal()-2.*sigma.getVal(), mean.getVal()+2.*sigma.getVal());
 
     RooPlot*  xframe = x.frame(h->GetNbinsX());
     xframe->SetTitle(h->GetTitle());
     dh.plotOn(xframe);
-    model->plotOn(xframe,Components(bkg),LineStyle(kDashed), LineColor(kRed));
+    model->plotOn(xframe,Components(RooArgSet(bkg,gaus)),LineStyle(kDashed), LineColor(kRed));
     model->plotOn(xframe);
 
-    xframe->GetYaxis()->SetTitle("Events/(0.002 GeV/c^{2}) ");//###
+    //xframe->GetYaxis()->SetTitle("# Events");
     if(Are_pi0_) xframe->GetYaxis()->SetTitleOffset(2.05);
     else         xframe->GetYaxis()->SetTitleOffset(1.3);
     xframe->Draw();
@@ -201,18 +202,39 @@ void Total_fit( TString File, TString Hname, bool RunOnAll, bool isEB=true, bool
     //lat.DrawLatex(xmin,yhi-ypass, line);
     //sprintf(line,"#sigma: %.2f #pm %.2f (%.2f%s)", sigma.getVal()*1000., sigma.getError()*1000., sigma.getVal()*100./mean.getVal(), "%" );
     //lat.DrawLatex(xmin,yhi-2.*ypass, line);
-    //sprintf(line,"S/B (3#sigma): %.2f", (integralSig->getVal()*Nsig.getVal())/(integralBkg->getVal()*Nbkg.getVal()) );
-    //lat.DrawLatex(xmin,yhi-3.*ypass, line);
-    //sprintf(line,"S: %.2f", (integralSig->getVal()*Nsig.getVal()) );
-    //lat.DrawLatex(xmin,yhi-4.*ypass, line);
-    //sprintf(line,"B: %.2f", (integralBkg->getVal()*Nbkg.getVal()) );
-    //lat.DrawLatex(xmin,yhi-5.*ypass, line);
+    sprintf(line,"S/B (2#sigma): %.2f", (integralSig->getVal()*Nsig.getVal())/(integralBkg->getVal()*Nbkg.getVal()) );
+    lat.DrawLatex(xmin,yhi-2.*ypass, line);
+    sprintf(line,"S (2#sigma): %.2f", (integralSig->getVal()*Nsig.getVal()) );
+    lat.DrawLatex(xmin,yhi-3.*ypass, line);
+    sprintf(line,"B (2#sigma): %.2f", (integralBkg->getVal()*Nbkg.getVal()) );
+    lat.DrawLatex(xmin,yhi-4.*ypass, line);
     myc1->SaveAs(outName.Data());
     myc1->SaveAs(outName1.Data());
     myc1->SaveAs(outName2.Data());
     myc1->SaveAs(outName3.Data());
-    cout<<"Histo Entries: "<<h->GetEntries()<<" and integral: "<<h->Integral()<<endl;
-    cout<<"integralSig->getVal()*Nsig.getVal(): "<<integralSig->getVal()*Nsig.getVal()<<" : "<<integralSig->getVal()<<" * "<<Nsig.getVal()<<endl;;
-    cout<<"integralBkg->getVal()*Nbkg.getVal(): "<<integralBkg->getVal()*Nbkg.getVal()<<" : "<<integralBkg->getVal()<<" * "<<Nbkg.getVal()<<endl;;
+    //float binSize = h->GetXaxis()->GetBinWidth(10);
+    //cout<<"BinSize is: "<<binSize<<endl;
+    //cout<<"Histo Entries: "<<h->GetEntries()<<" and integral: "<<h->Integral()<<" and integral width "<<h->Integral("width")<<endl;
+    //cout<<"h->GetSum()*0.1 (0.8 for bkg) "<<h->GetSum()<<" * 0.1 = "<<h->GetSum()*0.1<<endl;
+
+    //cout<<"integralSig->getVal()*Nsig.getVal(): "<<integralSig->getVal()*Nsig.getVal()<<" : "<<integralSig->getVal()<<" * "<<Nsig.getVal()<<endl;
+    //cout<<"gaus int "<<gaus.getVal()<<endl;
+    ////cout<<"integralBkg->getVal()*Nbkg.getVal(): "<<integralBkg->getVal()*Nbkg.getVal()<<" : "<<integralBkg->getVal()<<" * "<<Nbkg.getVal()<<endl;
+    //RooAbsReal* integralSig2 = gaus.createIntegral(x,NormSet(x));
+    //RooAbsReal* integralSig3 = gaus.createIntegral(x);
+    //RooAbsReal* integralSig4 = gaus.createIntegral(x,NormSet(x),Range("sobRange"));
+    //cout<<"integralSig "<<integralSig->getVal()<<" integralSig2 "<<integralSig2->getVal()<<" integralSig3 "<<integralSig3->getVal()<<" integralSig4 "<<integralSig4->getVal()<<endl;
+    //cout<<"Se ci credo "<<endl;
+    //cout<<"S: "<<integralSig->getVal()*Nsig.getVal()<<" B: "<<integralBkg->getVal()*Nbkg.getVal()<<" s/B "<<(integralSig->getVal()*Nsig.getVal())/(integralBkg->getVal()*Nbkg.getVal())<<endl;
+    //cout<<"ALL: "<<endl;
+    //cout<<"S: "<<Nsig.getVal()<<" B: "<<Nbkg.getVal()<<" s/B "<<Nsig.getVal()/Nbkg.getVal()<<" tot "<<(Nsig.getVal()+Nbkg.getVal())<<endl;
+
+    //TF1 *gau = new TF1("gau","[0]*exp(-0.5*((x-[1])/[2])**2)", 0.08, 0.22);
+    //gau->FixParameter(0,integralSig->getVal()*Nsig.getVal()*binSize);
+    //gau->FixParameter(1,mean.getVal());
+    //gau->FixParameter(2,sigma.getVal());
+    //gau->SetLineColor(2);
+    //gau->Draw("same");
+    //cout<<"TF1: "<<gau->Integral(0.08, 0.22)<<endl;
   }
 }
