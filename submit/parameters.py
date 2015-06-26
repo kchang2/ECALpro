@@ -7,7 +7,7 @@ ExternalGeometry   = 'caloGeometry.root'
 CalibType          = 'xtal'              # Calibrating single xtals. I never try but you could calibrate EtaRing ot Trigger Towers
 
 #Are Pi0
-Are_pi0            = True               # True = using Pi0, False = using Eta
+Are_pi0            = False               # True = using Pi0, False = using Eta
 #Fold per Eta Ring
 EtaRingCalibEB     = False
 SMCalibEB          = True
@@ -36,7 +36,7 @@ isMC = False
 MakeNtuple4optimization = False
 #InputList and Folder name
 inputlist_n      = 'InputList/2015A_All_RAW.list' # list of the input files
-dirname          = 'ALL_2015A_RAW_RECHIT_SMIC_01'
+dirname          = 'ALL_2015A_RAW_RECHIT_SMIC_Eta_01'
 Silent           = False                 # True->Fill modules is silent; False->Fill modules has a standard output
 #TAG, QUEUE and ITERS
 NameTag          = '2015A_'                   # Tag to the names to avoid overlap
@@ -249,9 +249,11 @@ useHLTFilter       = "True"                                   # Add to the path 
 correctHits        = 'False'
 globaltag          = 'GR_P_V55::All'
 globaltag_New      = False
-FROMDIGI           = False
+FROMDIGI           = True
 DigiCustomization  = False
-is50ns = True #If DigiCustomization is True
+MULTIFIT = True;   # Choose WEIGHTS or MULTIFIT (MULTIFIT is standard)
+is50ns = True      # If DigiCustomization and MULTIFIT is True
+WEIGHTS = False;   # Choose WEIGHTS or MULTIFIT (MULTIFIT is standard)
 if(Are_pi0):                                           # Member of Recalibration Module
    esInputTag = "InputTag('hltAlCaPi0RecHitsFilterEEonlyRegional','pi0EcalRecHitsES','HLT')"
    HLTPaths='AlCa_EcalPi0E*'                        # HLT Name to ask before running the event. It can contain a *.
