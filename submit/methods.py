@@ -28,7 +28,7 @@ def printFillCfg1( outputfile ):
         outputfile.write("                                     endcapRecHitCollection = cms.untracked.string('dummyEndcapRechits'),\n")
         outputfile.write("                                     # digis\n")                                                                                                                               
         outputfile.write("                                     barrelDigis            = cms." + EBdigi + ",\n")
-        outputfile.write("                                     endcapDigis            = cms." + EBdigi + ",\n")
+        outputfile.write("                                     endcapDigis            = cms." + EEdigi + ",\n")
         outputfile.write("                                     barrelDigiCollection   = cms.untracked.string('dummyBarrelDigis'),\n")
         outputfile.write("                                     endcapDigiCollection   = cms.untracked.string('dummyEndcapDigis'))\n")
         outputfile.write("\n")
