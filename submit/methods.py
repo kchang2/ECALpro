@@ -130,6 +130,13 @@ def printFillCfg1( outputfile ):
     outputfile.write("   SkipEvent = cms.untracked.vstring('ProductNotFound')\n")
     outputfile.write(")\n")
     outputfile.write("process.source = cms.Source('PoolSource',\n")
+    #outputfile.write("                            inputCommands = cms.untracked.vstring( #type_Module_instance_process\n")
+    #outputfile.write("                                'drop *',\n")
+    #outputfile.write("                                'keep E*DigiCollection_hltAlCa*RechitsToDigis_*_*',\n")
+    #outputfile.write("                                'keep *EcalRecHit*_hltAlCa*RecHitsFilterEEonlyRegional_*_*',\n")
+    #outputfile.write("                                'keep L1GlobalTriggerReadoutRecord_*_*_*',\n")
+    #outputfile.write("                                'keep *TriggerResults_*_*_*'\n")
+    #outputfile.write("                            ),\n")
     outputfile.write("    fileNames = cms.untracked.vstring(\n")
 
 def printFillCfg2( outputfile, pwd , iteration, outputDir, ijob ):
