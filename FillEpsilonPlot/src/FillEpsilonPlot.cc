@@ -457,6 +457,7 @@ FillEpsilonPlot::~FillEpsilonPlot()
   void
 FillEpsilonPlot::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
 {
+  //cout<<"Event: "<<iEvent.id().event()<<" Run "<<iEvent.id().run()<<" "<<endl;
   //Trigger Histo
   if( !areLabelsSet_ && L1TriggerInfo_ ){
     edm::Handle< L1GlobalTriggerObjectMapRecord > gtReadoutRecord;
