@@ -89,7 +89,7 @@ using std::map;
 using std::vector;
 using std::max;
 
-//#include "CalibCode/FillEpsilonPlot/interface/JSON.h"
+#include "CalibCode/FillEpsilonPlot/interface/JSON.h"
 //MVA Stuff
 #if not defined(__CINT__) || defined(__MAKECINT__)
 #include "TMVA/Tools.h"
@@ -191,6 +191,7 @@ FillEpsilonPlot::FillEpsilonPlot(const edm::ParameterSet& iConfig)
     MC_Asssoc_                         = iConfig.getUntrackedParameter<bool>("MC_Asssoc",false);
     MakeNtuple4optimization_           = iConfig.getUntrackedParameter<bool>("MakeNtuple4optimization",false);
     GeometryFromFile_                  = iConfig.getUntrackedParameter<bool>("GeometryFromFile",false);
+    JSONfile_                          = iConfig.getUntrackedParameter<std::string>("JSONfile","");
 
     if(useEE_EtSeed_) cout<<"SEEDS Used: EB "<<EB_Seed_E_<<" and EE "<<EE_Seed_Et_<<" (in Et) "<<endl;
     else              cout<<"SEEDS Used: EB "<<EB_Seed_E_<<" and EE "<<EE_Seed_E_<<" (in E) "<<endl;
@@ -205,8 +206,9 @@ FillEpsilonPlot::FillEpsilonPlot(const edm::ParameterSet& iConfig)
     cout<<"The StatError option choose is: "<<SystOrNot_<<" [0= No error stat computation, 1 = yes only even events, 2 = yes only odd events]"<<endl;
 
     useOnlyEEClusterMatchedWithES_ = iConfig.getUntrackedParameter<bool>("useOnlyEEClusterMatchedWithES"); 
-
-    /// shower shape parameters
+    //JSON
+    if( JSONfile_!="" ) myjson=new JSON( edm::FileInPath( JSONfile_.c_str() ).fullPath().c_str() );
+    // shower shape parameters
     PCparams_.param_LogWeighted_ = true;
     PCparams_.param_T0_barl_     = 7.4;
     PCparams_.param_T0_endc_     = 3.1;
@@ -270,12 +272,12 @@ FillEpsilonPlot::FillEpsilonPlot(const edm::ParameterSet& iConfig)
 	}
     }
 
-    EventFlow_EB  = new TH1F("EventFlow_EB", "EventFlow EB", 4, -0.5, 3.5 );
-    EventFlow_EB->GetXaxis()->SetBinLabel(1,"All Events"); EventFlow_EB->GetXaxis()->SetBinLabel(2,"HLT");
-    EventFlow_EB->GetXaxis()->SetBinLabel(3,"Initial Comb."); EventFlow_EB->GetXaxis()->SetBinLabel(4,"Final Comb.");
-    EventFlow_EE  = new TH1F("EventFlow_EE", "EventFlow EE", 4, -0.5, 3.5 );
-    EventFlow_EE->GetXaxis()->SetBinLabel(1,"All Events"); EventFlow_EE->GetXaxis()->SetBinLabel(2,"HLT");
-    EventFlow_EE->GetXaxis()->SetBinLabel(3,"Initial Comb."); EventFlow_EE->GetXaxis()->SetBinLabel(4,"Final Comb.");
+    EventFlow_EB  = new TH1F("EventFlow_EB", "EventFlow EB", 6, -0.5, 5.5 );
+    EventFlow_EB->GetXaxis()->SetBinLabel(1,"All Events"); EventFlow_EB->GetXaxis()->SetBinLabel(2,"JSON"); EventFlow_EB->GetXaxis()->SetBinLabel(3,"Trigger Res");
+    EventFlow_EB->GetXaxis()->SetBinLabel(4,"HLT"); EventFlow_EB->GetXaxis()->SetBinLabel(5,"Initial Comb."); EventFlow_EB->GetXaxis()->SetBinLabel(6,"Final Comb.");
+    EventFlow_EE  = new TH1F("EventFlow_EE", "EventFlow EE", 6, -0.5, 5.5 );
+    EventFlow_EE->GetXaxis()->SetBinLabel(1,"All Events"); EventFlow_EE->GetXaxis()->SetBinLabel(2,"JSON"); EventFlow_EE->GetXaxis()->SetBinLabel(3,"Trigger Res");
+    EventFlow_EE->GetXaxis()->SetBinLabel(4,"HLT"); EventFlow_EE->GetXaxis()->SetBinLabel(5,"Initial Comb."); EventFlow_EE->GetXaxis()->SetBinLabel(6,"Final Comb.");
     allEpsilon_EB = new TH1F("allEpsilon_EB", "allEpsilon_EB",240, Are_pi0_? 0.:0.3 , Are_pi0_? 0.5:0.8 );
     allEpsilon_EBnw = new TH1F("allEpsilon_EBnw", "allEpsilon_EBnw",240, Are_pi0_? 0.:0.3 , Are_pi0_? 0.5:0.8 );
     allEpsilon_EE = new TH1F("allEpsilon_EE", "allEpsilon_EE",240, Are_pi0_? 0.:0.3 , Are_pi0_? 0.5:0.8 );
@@ -429,7 +431,7 @@ FillEpsilonPlot::~FillEpsilonPlot()
   delete EBPHI_ConCorr_m;
 #endif
   //JSON
-  //delete myjson;
+  delete myjson;
   //#ifdef MVA_REGRESSIO
   //  // if the analyzer did not run it crash because you do not create it. Better never delete it
   //  if(!isMC_){
@@ -457,7 +459,11 @@ FillEpsilonPlot::~FillEpsilonPlot()
   void
 FillEpsilonPlot::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
 {
-  //cout<<"Event: "<<iEvent.id().event()<<" Run "<<iEvent.id().run()<<" "<<endl;
+  //cout<<"Event: "<<iEvent.id().event()<<" Run "<<iEvent.id().run()<<" LS "<<iEvent.id().luminosityBlock()<<endl;
+  //JSON
+  EventFlow_EB->Fill(0.); EventFlow_EE->Fill(0.);
+  if ( JSONfile_!="" && !myjson->isGoodLS(iEvent.id().run(),iEvent.id().luminosityBlock()) ) return;
+  EventFlow_EB->Fill(1.); EventFlow_EE->Fill(1.);
   //Trigger Histo
   if( !areLabelsSet_ && L1TriggerInfo_ ){
     edm::Handle< L1GlobalTriggerObjectMapRecord > gtReadoutRecord;
@@ -549,9 +555,9 @@ FillEpsilonPlot::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup
   iSetup.get<EcalChannelStatusRcd>().get(csHandle);
   const EcalChannelStatus &channelStatus = *csHandle; 
 
-  EventFlow_EB->Fill(0.); EventFlow_EE->Fill(0.);
-  if( (Barrel_orEndcap_=="ONLY_BARREL" || Barrel_orEndcap_=="ALL_PLEASE" ) && EB_HLT ){ EventFlow_EB->Fill(1.); fillEBClusters(ebclusters, iEvent, channelStatus);}
-  if( (Barrel_orEndcap_=="ONLY_ENDCAP" || Barrel_orEndcap_=="ALL_PLEASE" ) && EE_HLT ){ EventFlow_EE->Fill(1.); fillEEClusters(eseeclusters, eseeclusters_tot, iEvent, channelStatus);}
+  EventFlow_EB->Fill(2.); EventFlow_EE->Fill(2.);
+  if( (Barrel_orEndcap_=="ONLY_BARREL" || Barrel_orEndcap_=="ALL_PLEASE" ) && EB_HLT ){ EventFlow_EB->Fill(3.); fillEBClusters(ebclusters, iEvent, channelStatus);}
+  if( (Barrel_orEndcap_=="ONLY_ENDCAP" || Barrel_orEndcap_=="ALL_PLEASE" ) && EE_HLT ){ EventFlow_EE->Fill(3.); fillEEClusters(eseeclusters, eseeclusters_tot, iEvent, channelStatus);}
 
   if(Barrel_orEndcap_=="ONLY_BARREL" || Barrel_orEndcap_=="ALL_PLEASE" ) computeEpsilon(ebclusters, EcalBarrel);
   if(Barrel_orEndcap_=="ONLY_ENDCAP" || Barrel_orEndcap_=="ALL_PLEASE" ) computeEpsilon(eseeclusters_tot, EcalEndcap);
@@ -1182,8 +1188,8 @@ void FillEpsilonPlot::computeEpsilon(std::vector< CaloCluster > & clusters, int 
 #ifdef DEBUG
 	cout << "\n[DEBUG] New Pair of Clusters"<< endl;
 #endif
-	if( subDetId==EcalBarrel ) EventFlow_EB->Fill(2.);
-	else                       EventFlow_EE->Fill(2.);
+	if( subDetId==EcalBarrel ) EventFlow_EB->Fill(4.);
+	else                       EventFlow_EE->Fill(4.);
 	float Corr1 = 1., Corr2 = 1.;
 #if !defined(NEW_CONTCORR) && defined(MVA_REGRESSIO)
 	if( subDetId==EcalBarrel && (g1->seed().subdetId()==1) && (g2->seed().subdetId()==1) ){
@@ -1487,8 +1493,8 @@ void FillEpsilonPlot::computeEpsilon(std::vector< CaloCluster > & clusters, int 
 	  pi0MassVsIetaEB->Fill( fabs(pi0P4.eta())/0.0174, pi0P4.mass());
 	  pi0MassVsETEB->Fill(pi0P4.Pt(), pi0P4.mass());
 	}
-	if( subDetId==EcalBarrel ) EventFlow_EB->Fill(3.);
-	else                       EventFlow_EE->Fill(3.);
+	if( subDetId==EcalBarrel ) EventFlow_EB->Fill(5.);
+	else                       EventFlow_EE->Fill(5.);
 #ifdef DEBUG
 	cout << "[DEBUG] Fill Optimization Variables..." << endl;
 #endif

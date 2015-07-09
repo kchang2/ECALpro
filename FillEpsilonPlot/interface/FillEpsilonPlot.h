@@ -25,7 +25,7 @@
 #include "Geometry/CaloGeometry/interface/CaloGeometry.h"
 #include "CondFormats/EcalObjects/interface/EcalChannelStatus.h"
 #include "CondFormats/DataRecord/interface/EcalChannelStatusRcd.h"
-//#include "CalibCode/FillEpsilonPlot/interface/JSON.h"
+#include "CalibCode/FillEpsilonPlot/interface/JSON.h"
 
 #define NPI0MAX 30000
 #define NL1SEED 128
@@ -348,7 +348,8 @@ class FillEpsilonPlot : public edm::EDAnalyzer {
       Int_t   iX1_mva, iY1_mva, iX2_mva, iY2_mva, EtaRing1_mva, EtaRing2_mva;
 #endif
       //JSON
-      //JSON* myjson;
+      std::string JSONfile_;
+      JSON* myjson;
       int Num_Fail_Sel;
       int Num_Fail_tot;
       TH1F *Selec_Efficiency;

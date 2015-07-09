@@ -127,7 +127,7 @@ def printFillCfg1( outputfile ):
     outputfile.write(")\n")
     outputfile.write("process.options = cms.untracked.PSet(\n")
     outputfile.write("   wantSummary = cms.untracked.bool(True),\n")
-    outputfile.write("   SkipEvent = cms.untracked.vstring('ProductNotFound')\n")
+    outputfile.write("   SkipEvent = cms.untracked.vstring('ProductNotFound','CrystalIDError','CrystalIDError2')\n")
     outputfile.write(")\n")
     outputfile.write("process.source = cms.Source('PoolSource',\n")
     #outputfile.write("                            inputCommands = cms.untracked.vstring( #type_Module_instance_process\n")
@@ -142,22 +142,22 @@ def printFillCfg1( outputfile ):
 def printFillCfg2( outputfile, pwd , iteration, outputDir, ijob ):
     outputfile.write("    )\n")
     outputfile.write(")\n")
-    outputfile.write("\n")
-    if(len(json_file)>0):
-       outputfile.write('if(re.match("CMSSW_5_.*_.*",CMSSW_VERSION)):\n')
-       outputfile.write("   import FWCore.PythonUtilities.LumiList as LumiList\n")
-       if (isCRAB):
-           outputfile.write("   process.source.lumisToProcess = LumiList.LumiList(filename = 'CalibCode/FillEpsilonPlot/data/" + json_file + "').getVLuminosityBlockRange()\n")
-       else:
-           outputfile.write("   process.source.lumisToProcess = LumiList.LumiList(filename = '" + pwd + "/../../CalibCode/FillEpsilonPlot/data/" + json_file + "').getVLuminosityBlockRange()\n")
-       outputfile.write("else:\n")
-       outputfile.write("   import PhysicsTools.PythonAnalysis.LumiList as LumiList\n")
-       if (isCRAB):
-           outputfile.write("   myLumis = LumiList.LumiList(filename = 'CalibCode/FillEpsilonPlot/data/" + json_file + "').getCMSSWString().split(',')\n")
-       else:
-           outputfile.write("   myLumis = LumiList.LumiList(filename = '" + pwd + "/../../CalibCode/FillEpsilonPlot/data/" + json_file + "').getCMSSWString().split(',')\n")
-       outputfile.write("   process.source.lumisToProcess = cms.untracked.VLuminosityBlockRange()\n")
-       outputfile.write("   process.source.lumisToProcess.extend(myLumis)\n")
+#    outputfile.write("\n")
+#    if(len(json_file)>0):
+#       outputfile.write('if(re.match("CMSSW_5_.*_.*",CMSSW_VERSION)):\n')
+#       outputfile.write("   import FWCore.PythonUtilities.LumiList as LumiList\n")
+#       if (isCRAB):
+#           outputfile.write("   process.source.lumisToProcess = LumiList.LumiList(filename = 'CalibCode/FillEpsilonPlot/data/" + json_file + "').getVLuminosityBlockRange()\n")
+#       else:
+#           outputfile.write("   process.source.lumisToProcess = LumiList.LumiList(filename = '" + pwd + "/../../CalibCode/FillEpsilonPlot/data/" + json_file + "').getVLuminosityBlockRange()\n")
+#       outputfile.write("else:\n")
+#       outputfile.write("   import PhysicsTools.PythonAnalysis.LumiList as LumiList\n")
+#       if (isCRAB):
+#           outputfile.write("   myLumis = LumiList.LumiList(filename = 'CalibCode/FillEpsilonPlot/data/" + json_file + "').getCMSSWString().split(',')\n")
+#       else:
+#           outputfile.write("   myLumis = LumiList.LumiList(filename = '" + pwd + "/../../CalibCode/FillEpsilonPlot/data/" + json_file + "').getCMSSWString().split(',')\n")
+#       outputfile.write("   process.source.lumisToProcess = cms.untracked.VLuminosityBlockRange()\n")
+#       outputfile.write("   process.source.lumisToProcess.extend(myLumis)\n")
     outputfile.write("\n")
     outputfile.write("process.analyzerFillEpsilon = cms.EDAnalyzer('FillEpsilonPlot')\n")
     outputfile.write("process.analyzerFillEpsilon.OutputDir = cms.untracked.string('" +  outputDir + "')\n")
@@ -261,6 +261,8 @@ def printFillCfg2( outputfile, pwd , iteration, outputDir, ijob ):
     outputfile.write("process.analyzerFillEpsilon.S4S9_EE_low = cms.untracked.double(" + S4S9_EE_low + ")\n")
     outputfile.write("process.analyzerFillEpsilon.S4S9_EE_high = cms.untracked.double(" + S4S9_EE_high + ")\n")
     outputfile.write("process.analyzerFillEpsilon.Barrel_orEndcap = cms.untracked.string('" + Barrel_or_Endcap + "')\n")
+    if(len(json_file)>0):
+       outputfile.write("process.analyzerFillEpsilon.JSONfile = cms.untracked.string('CalibCode/FillEpsilonPlot/data/" + json_file + "')\n")
     if GeometryFromFile:
        outputfile.write("process.analyzerFillEpsilon.GeometryFromFile = cms.untracked.bool(True)\n")
     if isMC:
