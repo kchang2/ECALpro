@@ -54,7 +54,7 @@ def printFillCfg1( outputfile ):
            outputfile.write("process.load('RecoLocalCalo.EcalRecProducers.ecalGlobalUncalibRecHit_cfi')\n")
            outputfile.write("process.ecalweight =  RecoLocalCalo.EcalRecProducers.ecalGlobalUncalibRecHit_cfi.ecalGlobalUncalibRecHit.clone()\n")
            outputfile.write("process.ecalweight.EBdigiCollection = cms.InputTag('dummyHits','dummyBarrelDigis','analyzerFillEpsilon')\n")
-           outputfile.write("process.ecalweight.EEdigiCollection = cms.InputTag('dummyHits','dummyBarrelDigis','analyzerFillEpsilon')\n")
+           outputfile.write("process.ecalweight.EEdigiCollection = cms.InputTag('dummyHits','dummyEndcapDigis','analyzerFillEpsilon')\n")
         outputfile.write("#UNCALIB to CALIB\n")
         outputfile.write("from RecoLocalCalo.EcalRecProducers.ecalRecHit_cfi import *\n")
         outputfile.write("process.ecalDetIdToBeRecovered =  RecoLocalCalo.EcalRecProducers.ecalDetIdToBeRecovered_cfi.ecalDetIdToBeRecovered.clone()\n")
@@ -65,6 +65,9 @@ def printFillCfg1( outputfile ):
         outputfile.write("process.ecalRecHit.recoverEEFE = cms.bool( False )\n")
         outputfile.write("process.ecalRecHit.recoverEEIsolatedChannels = cms.bool( False )\n")
         outputfile.write("process.ecalRecHit.recoverEBIsolatedChannels = cms.bool( False )\n")
+        if(WEIGHTS):
+           outputfile.write("process.ecalRecHit.EEuncalibRecHitCollection =  cms.InputTag('ecalweight','EcalUncalibRecHitsEE')\n")
+           outputfile.write("process.ecalRecHit.EBuncalibRecHitCollection =  cms.InputTag('ecalweight','EcalUncalibRecHitsEB')\n")
         outputfile.write("process.ecalLocalRecoSequence = cms.Sequence(ecalRecHit)\n")
 
     if (overWriteGlobalTag):
@@ -127,7 +130,7 @@ def printFillCfg1( outputfile ):
     outputfile.write(")\n")
     outputfile.write("process.options = cms.untracked.PSet(\n")
     outputfile.write("   wantSummary = cms.untracked.bool(True),\n")
-    outputfile.write("   SkipEvent = cms.untracked.vstring('ProductNotFound','CrystalIDError','CrystalIDError2')\n")
+    outputfile.write("   SkipEvent = cms.untracked.vstring('ProductNotFound','CrystalIDError')\n")
     outputfile.write(")\n")
     outputfile.write("process.source = cms.Source('PoolSource',\n")
     #outputfile.write("                            inputCommands = cms.untracked.vstring( #type_Module_instance_process\n")
@@ -287,7 +290,7 @@ def printFillCfg2( outputfile, pwd , iteration, outputDir, ijob ):
         if(MULTIFIT):
            outputfile.write("process.p *= process.ecalMultiFitUncalibRecHit\n")
         if (WEIGHTS):
-           outputfile.write("process.p *= ecalweight\n")
+           outputfile.write("process.p *= process.ecalweight\n")
         outputfile.write("process.p *= process.ecalLocalRecoSequence\n")
     outputfile.write("process.p *= process.analyzerFillEpsilon\n")
 
